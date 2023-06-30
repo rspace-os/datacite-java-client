@@ -1,6 +1,7 @@
 package com.researchspace.datacite.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -115,21 +116,21 @@ public class DataCiteClientTest {
     //@Test
     public void canRegisterPublishRetractDoi() throws MalformedURLException, URISyntaxException {
         // create new draft doi
-        DataCiteDoi doiToCreate = new DataCiteDoi();
-        doiToCreate.getAttributes().setTitles(List.of(new DataCiteDoiAttributes.Title("RSpace test DOI " + new Date())));
-        doiToCreate.getAttributes().setCreators(List.of(new DataCiteDoiAttributes.Creator("ResearchSpace TestScript", "Organizational")));
-        doiToCreate.getAttributes().setPublisher("ResearchSpace");
-        doiToCreate.getAttributes().setPublicationYear(2023);
-        doiToCreate.getAttributes().setTypes(new DataCiteDoiAttributes.Types("RS page", "Software"));
-        doiToCreate.getAttributes().setUrl("https://researchspace.com/integrations");
-        doiToCreate.isValidForPublish();
-
-        DataCiteDoi createdDoi = dataCiteClient.registerDoi(doiToCreate);
+        DataCiteDoi createdDoi = dataCiteClient.registerDoi(new DataCiteDoi());
         assertNotNull(createdDoi);
         String createdDoiId = createdDoi.getId();
         assertNotNull(createdDoiId);
-        assertTrue(createdDoi.getAttributes().getTitles().get(0).getTitle().startsWith("RSpace test DOI"));
         assertEquals("draft", createdDoi.getAttributes().getState());
+        
+        // update so it's valid for publish
+        assertFalse(createdDoi.isValidForPublish());
+        createdDoi.getAttributes().setTitles(List.of(new DataCiteDoiAttributes.Title("RSpace test DOI " + new Date())));
+        createdDoi.getAttributes().setCreators(List.of(new DataCiteDoiAttributes.Creator("ResearchSpace TestScript", "Organizational")));
+        createdDoi.getAttributes().setPublisher("ResearchSpace");
+        createdDoi.getAttributes().setPublicationYear(2023);
+        createdDoi.getAttributes().setTypes(new DataCiteDoiAttributes.Types("RS page", "Software"));
+        createdDoi.getAttributes().setUrl("https://researchspace.com/integrations");
+        assertTrue(createdDoi.isValidForPublish());
 
         // publish 
         DataCiteDoi publishedDoi = dataCiteClient.publishDoi(createdDoi);

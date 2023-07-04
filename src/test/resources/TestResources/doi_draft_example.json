@@ -1,0 +1,122 @@
+{
+  "data": {
+    "id": "10.82316/m906-wb49",
+    "type": "dois",
+    "attributes": {
+      "doi": "10.82316/m906-wb49",
+      "prefix": "10.82316",
+      "suffix": "m906-wb49",
+      "identifiers": [],
+      "alternateIdentifiers": [],
+      "creators": [
+        {
+          "name": "MK",
+          "nameType": null,
+          "givenName": null,
+          "familyName": null,
+          "affiliation": [],
+          "nameIdentifiers": [
+            {
+              "schemeUri": null,
+              "nameIdentifier": "ResearchSpace",
+              "nameIdentifierScheme": "Other"
+            }
+          ]
+        }
+      ],
+      "titles": [
+        {
+          "lang": null,
+          "title": "test title",
+          "titleType": null
+        }
+      ],
+      "publisher": "ResearchSpace",
+      "container": {},
+      "publicationYear": 2023,
+      "subjects": [],
+      "contributors": [],
+      "dates": [],
+      "language": null,
+      "types": {
+        "ris": "GEN",
+        "bibtex": "misc",
+        "citeproc": "article",
+        "schemaOrg": "CreativeWork",
+        "resourceTypeGeneral": "Other"
+      },
+      "relatedIdentifiers": [],
+      "relatedItems": [],
+      "sizes": [],
+      "formats": [],
+      "version": null,
+      "rightsList": [],
+      "descriptions": [],
+      "geoLocations": [],
+      "fundingReferences": [],
+      "xml": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHJlc291cmNlIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhtbG5zPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCIgeHNpOnNjaGVtYUxvY2F0aW9uPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCBodHRwOi8vc2NoZW1hLmRhdGFjaXRlLm9yZy9tZXRhL2tlcm5lbC00L21ldGFkYXRhLnhzZCI+CiAgPGlkZW50aWZpZXIgaWRlbnRpZmllclR5cGU9IkRPSSI+MTAuODIzMTYvTTkwNi1XQjQ5PC9pZGVudGlmaWVyPgogIDxjcmVhdG9ycz4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWU+TUs8L2NyZWF0b3JOYW1lPgogICAgICA8bmFtZUlkZW50aWZpZXIgbmFtZUlkZW50aWZpZXJTY2hlbWU9Ik90aGVyIiBzY2hlbWVVUkk9IiI+UmVzZWFyY2hTcGFjZTwvbmFtZUlkZW50aWZpZXI+CiAgICA8L2NyZWF0b3I+CiAgPC9jcmVhdG9ycz4KICA8dGl0bGVzPgogICAgPHRpdGxlPnRlc3QgdGl0bGU8L3RpdGxlPgogIDwvdGl0bGVzPgogIDxwdWJsaXNoZXI+UmVzZWFyY2hTcGFjZTwvcHVibGlzaGVyPgogIDxwdWJsaWNhdGlvblllYXI+MjAyMzwvcHVibGljYXRpb25ZZWFyPgogIDxyZXNvdXJjZVR5cGUgcmVzb3VyY2VUeXBlR2VuZXJhbD0iT3RoZXIiLz4KICA8c2l6ZXMvPgogIDxmb3JtYXRzLz4KICA8dmVyc2lvbi8+CjwvcmVzb3VyY2U+Cg==",
+      "url": "https://www.researchspace.com/integrations",
+      "contentUrl": null,
+      "metadataVersion": 0,
+      "schemaVersion": null,
+      "source": "fabricaForm",
+      "isActive": false,
+      "state": "draft",
+      "reason": null,
+      "landingPage": null,
+      "viewCount": 0,
+      "viewsOverTime": [],
+      "downloadCount": 0,
+      "downloadsOverTime": [],
+      "referenceCount": 0,
+      "citationCount": 0,
+      "citationsOverTime": [],
+      "partCount": 0,
+      "partOfCount": 0,
+      "versionCount": 0,
+      "versionOfCount": 0,
+      "created": "2023-06-27T08:18:28.000Z",
+      "registered": null,
+      "published": "2023",
+      "updated": "2023-06-27T08:18:28.000Z"
+    },
+    "relationships": {
+      "client": {
+        "data": {
+          "id": "ajfo.jijemd",
+          "type": "clients"
+        }
+      },
+      "provider": {
+        "data": {
+          "id": "ajfo",
+          "type": "providers"
+        }
+      },
+      "media": {
+        "data": {
+          "id": "10.82316/m906-wb49",
+          "type": "media"
+        }
+      },
+      "references": {
+        "data": []
+      },
+      "citations": {
+        "data": []
+      },
+      "parts": {
+        "data": []
+      },
+      "partOf": {
+        "data": []
+      },
+      "versions": {
+        "data": []
+      },
+      "versionOf": {
+        "data": []
+      }
+    }
+  }
+}

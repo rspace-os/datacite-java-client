@@ -131,7 +131,13 @@ public class DataCiteClientTest {
         createdDoi.getAttributes().setTypes(new DataCiteDoiAttributes.Types("RS page", "Software"));
         createdDoi.getAttributes().setUrl("https://researchspace.com/integrations");
         assertTrue(createdDoi.isValidForPublish());
-
+        
+        // add recommended fields
+        createdDoi.getAttributes().setSubjects(List.of(new DataCiteDoiAttributes.Subject("RSTest Subject", "", "", "", "")));
+        createdDoi.getAttributes().setDescriptions(List.of(new DataCiteDoiAttributes.Description("RSTest desc", "Abstract")));
+        createdDoi.getAttributes().setRelatedIdentifiers(List.of(new DataCiteDoiAttributes.RelatedIdentifier("RSTest x023", "bibcode")));
+        createdDoi.getAttributes().setDates(List.of(new DataCiteDoiAttributes.DoiDate("2023-07-31", "Other")));
+        
         // publish 
         DataCiteDoi publishedDoi = dataCiteClient.publishDoi(createdDoi);
         assertNotNull(publishedDoi);

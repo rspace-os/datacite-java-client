@@ -21,6 +21,7 @@ public class DataCiteDoiTest {
         ObjectMapper mapper = new ObjectMapper();
         DataCiteDoiRequestWrapper convertedDoiResponse = mapper.readValue(jsonString, DataCiteDoiRequestWrapper.class);
         assertEquals("10.82316/m906-wb49", convertedDoiResponse.getData().getId());
+        assertEquals("RSpace Test Description", convertedDoiResponse.getData().getAttributes().getDescriptions().get(0).getDescription());
     }
     
 }

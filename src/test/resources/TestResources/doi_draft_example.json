@@ -34,9 +34,28 @@
       "publisher": "ResearchSpace",
       "container": {},
       "publicationYear": 2023,
-      "subjects": [],
+      "subjects": [
+        {
+          "subject": "FOS: Computer and information sciences",
+          "valueUri": "",
+          "schemeUri": "http://www.oecd.org/science/inno/38235147.pdf",
+          "subjectScheme": "Fields of Science and Technology (FOS)",
+          "classificationCode": "1.2"
+        }
+      ],
       "contributors": [],
-      "dates": [],
+      "dates": [
+        {
+          "date": "2023-07-31",
+          "dateType": "Available",
+          "dateInformation": null
+        },
+        {
+          "date": "2023-07-24",
+          "dateType": "Other",
+          "dateInformation": "let's say a sample's expiry date"
+        }
+      ],
       "language": null,
       "types": {
         "ris": "GEN",
@@ -45,20 +64,36 @@
         "schemaOrg": "CreativeWork",
         "resourceTypeGeneral": "Other"
       },
-      "relatedIdentifiers": [],
+      "relatedIdentifiers": [
+        {
+          "schemeUri": null,
+          "schemeType": null,
+          "relationType": "IsCompiledBy",
+          "relatedIdentifier": "mk.01",
+          "resourceTypeGeneral": "Other",
+          "relatedIdentifierType": "Handle",
+          "relatedMetadataScheme": null
+        }
+      ],
       "relatedItems": [],
       "sizes": [],
       "formats": [],
       "version": null,
       "rightsList": [],
-      "descriptions": [],
+      "descriptions": [
+        {
+          "lang": "en",
+          "description": "RSpace Test Description",
+          "descriptionType": "Abstract"
+        }
+      ],
       "geoLocations": [],
       "fundingReferences": [],
-      "xml": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHJlc291cmNlIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhtbG5zPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCIgeHNpOnNjaGVtYUxvY2F0aW9uPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCBodHRwOi8vc2NoZW1hLmRhdGFjaXRlLm9yZy9tZXRhL2tlcm5lbC00L21ldGFkYXRhLnhzZCI+CiAgPGlkZW50aWZpZXIgaWRlbnRpZmllclR5cGU9IkRPSSI+MTAuODIzMTYvTTkwNi1XQjQ5PC9pZGVudGlmaWVyPgogIDxjcmVhdG9ycz4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWU+TUs8L2NyZWF0b3JOYW1lPgogICAgICA8bmFtZUlkZW50aWZpZXIgbmFtZUlkZW50aWZpZXJTY2hlbWU9Ik90aGVyIiBzY2hlbWVVUkk9IiI+UmVzZWFyY2hTcGFjZTwvbmFtZUlkZW50aWZpZXI+CiAgICA8L2NyZWF0b3I+CiAgPC9jcmVhdG9ycz4KICA8dGl0bGVzPgogICAgPHRpdGxlPnRlc3QgdGl0bGU8L3RpdGxlPgogIDwvdGl0bGVzPgogIDxwdWJsaXNoZXI+UmVzZWFyY2hTcGFjZTwvcHVibGlzaGVyPgogIDxwdWJsaWNhdGlvblllYXI+MjAyMzwvcHVibGljYXRpb25ZZWFyPgogIDxyZXNvdXJjZVR5cGUgcmVzb3VyY2VUeXBlR2VuZXJhbD0iT3RoZXIiLz4KICA8c2l6ZXMvPgogIDxmb3JtYXRzLz4KICA8dmVyc2lvbi8+CjwvcmVzb3VyY2U+Cg==",
+      "xml": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHJlc291cmNlIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhtbG5zPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCIgeHNpOnNjaGVtYUxvY2F0aW9uPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCBodHRwOi8vc2NoZW1hLmRhdGFjaXRlLm9yZy9tZXRhL2tlcm5lbC00L21ldGFkYXRhLnhzZCI+CiAgPGlkZW50aWZpZXIgaWRlbnRpZmllclR5cGU9IkRPSSI+MTAuODIzMTYvTTkwNi1XQjQ5PC9pZGVudGlmaWVyPgogIDxjcmVhdG9ycz4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWU+TUs8L2NyZWF0b3JOYW1lPgogICAgICA8bmFtZUlkZW50aWZpZXIgbmFtZUlkZW50aWZpZXJTY2hlbWU9Ik90aGVyIiBzY2hlbWVVUkk9IiI+UmVzZWFyY2hTcGFjZTwvbmFtZUlkZW50aWZpZXI+CiAgICA8L2NyZWF0b3I+CiAgPC9jcmVhdG9ycz4KICA8dGl0bGVzPgogICAgPHRpdGxlPnRlc3QgdGl0bGU8L3RpdGxlPgogIDwvdGl0bGVzPgogIDxwdWJsaXNoZXI+UmVzZWFyY2hTcGFjZTwvcHVibGlzaGVyPgogIDxwdWJsaWNhdGlvblllYXI+MjAyMzwvcHVibGljYXRpb25ZZWFyPgogIDxyZXNvdXJjZVR5cGUgcmVzb3VyY2VUeXBlR2VuZXJhbD0iT3RoZXIiPkNyZWF0aXZlV29yazwvcmVzb3VyY2VUeXBlPgogIDxzdWJqZWN0cz4KICAgIDxzdWJqZWN0IHN1YmplY3RTY2hlbWU9IkZpZWxkcyBvZiBTY2llbmNlIGFuZCBUZWNobm9sb2d5IChGT1MpIiBzY2hlbWVVUkk9Imh0dHA6Ly93d3cub2VjZC5vcmcvc2NpZW5jZS9pbm5vLzM4MjM1MTQ3LnBkZiIgdmFsdWVVUkk9IiI+Rk9TOiBDb21wdXRlciBhbmQgaW5mb3JtYXRpb24gc2NpZW5jZXM8L3N1YmplY3Q+CiAgPC9zdWJqZWN0cz4KICA8ZGF0ZXM+CiAgICA8ZGF0ZSBkYXRlVHlwZT0iQXZhaWxhYmxlIj4yMDIzLTA3LTMxPC9kYXRlPgogICAgPGRhdGUgZGF0ZVR5cGU9Ik90aGVyIiBkYXRlSW5mb3JtYXRpb249ImxldCdzIHNheSBhIHNhbXBsZSdzIGV4cGlyeSBkYXRlIj4yMDIzLTA3LTI0PC9kYXRlPgogIDwvZGF0ZXM+CiAgPHJlbGF0ZWRJZGVudGlmaWVycz4KICAgIDxyZWxhdGVkSWRlbnRpZmllciByZWxhdGVkSWRlbnRpZmllclR5cGU9IkhhbmRsZSIgcmVsYXRpb25UeXBlPSJJc0NvbXBpbGVkQnkiIHJlc291cmNlVHlwZUdlbmVyYWw9Ik90aGVyIj5tay4wMTwvcmVsYXRlZElkZW50aWZpZXI+CiAgPC9yZWxhdGVkSWRlbnRpZmllcnM+CiAgPHNpemVzLz4KICA8Zm9ybWF0cy8+CiAgPHZlcnNpb24vPgogIDxkZXNjcmlwdGlvbnM+CiAgICA8ZGVzY3JpcHRpb24geG1sOmxhbmc9ImVuIiBkZXNjcmlwdGlvblR5cGU9IkFic3RyYWN0Ij5SU3BhY2UgVGVzdCBEZXNjcmlwdGlvbjwvZGVzY3JpcHRpb24+CiAgPC9kZXNjcmlwdGlvbnM+CjwvcmVzb3VyY2U+Cg==",
       "url": "https://www.researchspace.com/integrations",
       "contentUrl": null,
-      "metadataVersion": 0,
-      "schemaVersion": null,
+      "metadataVersion": 2,
+      "schemaVersion": "http://datacite.org/schema/kernel-4",
       "source": "fabricaForm",
       "isActive": false,
       "state": "draft",
@@ -78,7 +113,7 @@
       "created": "2023-06-27T08:18:28.000Z",
       "registered": null,
       "published": "2023",
-      "updated": "2023-06-27T08:18:28.000Z"
+      "updated": "2023-07-31T08:12:09.000Z"
     },
     "relationships": {
       "client": {

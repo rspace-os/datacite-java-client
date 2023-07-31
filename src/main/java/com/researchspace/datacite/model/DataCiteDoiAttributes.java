@@ -20,7 +20,10 @@ public class DataCiteDoiAttributes {
     private List<Title> titles;
     private String publisher;
     private int publicationYear;
-    private List<Object> subjects;
+    private List<Subject> subjects;
+    private List<Description> descriptions;
+    private List<RelatedIdentifier> relatedIdentifiers;
+    private List<DoiDate> dates;
     private List<Object> contributors;
     private Types types;
     private Object version;
@@ -71,6 +74,51 @@ public class DataCiteDoiAttributes {
     public static class Types {
         private String resourceType;
         private String resourceTypeGeneral;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Subject {
+        private String subject;
+        private String subjectScheme;
+        private String schemeURI;
+        private String valueURI;
+        private String classificationCode;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Description {
+        private String description;
+        private String descriptionType;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class RelatedIdentifier {
+        private String relatedIdentifier;
+        private String relatedIdentifierType;
+        private String relationType;
+        
+        public RelatedIdentifier(String relatedIdentifier, String relatedIdentifierType) {
+            setRelatedIdentifier(relatedIdentifier);
+            setRelatedIdentifierType(relatedIdentifierType);
+            setRelationType("References"); // default
+        }
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class DoiDate {
+        private String date;
+        private String dateType;
     }
 
 }

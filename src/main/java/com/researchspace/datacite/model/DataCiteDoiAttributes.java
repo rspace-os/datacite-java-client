@@ -16,13 +16,13 @@ public class DataCiteDoiAttributes {
     private String prefix;
     private String suffix;
     private List<Object> identifiers;
+    private List<AlternateIdentifier> alternateIdentifiers;
     private List<Creator> creators;
     private List<Title> titles;
     private String publisher;
     private int publicationYear;
     private List<Subject> subjects;
     private List<Description> descriptions;
-    private List<RelatedIdentifier> relatedIdentifiers;
     private List<DoiDate> dates;
     private List<Object> contributors;
     private Types types;
@@ -98,18 +98,12 @@ public class DataCiteDoiAttributes {
     }
 
     @Data
+    @AllArgsConstructor
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class RelatedIdentifier {
-        private String relatedIdentifier;
-        private String relatedIdentifierType;
-        private String relationType;
-        
-        public RelatedIdentifier(String relatedIdentifier, String relatedIdentifierType) {
-            setRelatedIdentifier(relatedIdentifier);
-            setRelatedIdentifierType(relatedIdentifierType);
-            setRelationType("References"); // default
-        }
+    public static class AlternateIdentifier {
+        private String alternateIdentifier;
+        private String alternateIdentifierType;
     }
 
     @Data

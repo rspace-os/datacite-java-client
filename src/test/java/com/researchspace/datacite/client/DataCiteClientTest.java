@@ -85,11 +85,19 @@ public class DataCiteClientTest {
         // update 
         DataCiteDoi doiUpdate = new DataCiteDoi();
         doiUpdate.setId(createdDoiId);
+        // add title
         doiUpdate.getAttributes().setTitles(List.of(new DataCiteDoiAttributes.Title("updated title")));
+        // add recommended fields
+        doiUpdate.getAttributes().setSubjects(List.of(new DataCiteDoiAttributes.Subject("RSTest Subject", "", "", "", "")));
+        doiUpdate.getAttributes().setDescriptions(List.of(new DataCiteDoiAttributes.Description("RSTest desc", "Abstract")));
+        doiUpdate.getAttributes().setAlternateIdentifiers(List.of(new DataCiteDoiAttributes.AlternateIdentifier("SA32768", "RSpace Sample")));
+        doiUpdate.getAttributes().setDates(List.of(new DataCiteDoiAttributes.DoiDate("2023-07-31", "Other")));
+        
         DataCiteDoi updatedDoi = dataCiteClient.updateDoi(doiUpdate);
         assertNotNull(updatedDoi);
         assertEquals(1, updatedDoi.getAttributes().getTitles().size());
         assertEquals("updated title", updatedDoi.getAttributes().getTitles().get(0).getTitle());
+        assertEquals(1, updatedDoi.getAttributes().getDescriptions().size());
         // partial update nullifies other fields
         assertNull(updatedDoi.getAttributes().getTypes().getResourceTypeGeneral());
         
@@ -131,13 +139,7 @@ public class DataCiteClientTest {
         createdDoi.getAttributes().setTypes(new DataCiteDoiAttributes.Types("RS page", "Software"));
         createdDoi.getAttributes().setUrl("https://researchspace.com/integrations");
         assertTrue(createdDoi.isValidForPublish());
-        
-        // add recommended fields
-        createdDoi.getAttributes().setSubjects(List.of(new DataCiteDoiAttributes.Subject("RSTest Subject", "", "", "", "")));
-        createdDoi.getAttributes().setDescriptions(List.of(new DataCiteDoiAttributes.Description("RSTest desc", "Abstract")));
-        createdDoi.getAttributes().setRelatedIdentifiers(List.of(new DataCiteDoiAttributes.RelatedIdentifier("RSTest x023", "bibcode")));
-        createdDoi.getAttributes().setDates(List.of(new DataCiteDoiAttributes.DoiDate("2023-07-31", "Other")));
-        
+
         // publish 
         DataCiteDoi publishedDoi = dataCiteClient.publishDoi(createdDoi);
         assertNotNull(publishedDoi);

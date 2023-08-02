@@ -83,8 +83,8 @@ public class DataCiteDoiAttributes {
     public static class Subject {
         private String subject;
         private String subjectScheme;
-        private String schemeURI;
-        private String valueURI;
+        private String schemeUri;
+        private String valueUri;
         private String classificationCode;
     }
 

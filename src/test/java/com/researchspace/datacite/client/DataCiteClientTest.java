@@ -4,9 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import com.researchspace.datacite.model.DataCiteConnectionException;
 import com.researchspace.datacite.model.DataCiteDoi;
 import com.researchspace.datacite.model.DataCiteDoiAttributes;
 import java.io.IOException;
@@ -26,10 +28,10 @@ public class DataCiteClientTest {
     private DataCiteClient dataCiteClient;
 
     public DataCiteClientTest() throws IOException, URISyntaxException {
-        loadDataCiteConfigProperties();
+        resetClientFromConfigProperties();
     }
 
-    private void loadDataCiteConfigProperties() throws IOException, URISyntaxException {
+    private void resetClientFromConfigProperties() throws IOException, URISyntaxException {
         Properties configProps = new Properties();
         InputStream iStream = new ClassPathResource("datacite-config.properties").getInputStream();
         configProps.load(iStream);
@@ -48,7 +50,7 @@ public class DataCiteClientTest {
      * @throws URISyntaxException
      */
     @Test
-    public void canRetrieveKnownFindableDoi() throws IOException, URISyntaxException {
+    public void canRetrieveKnownFindableDoi() {
         // registered & findable DOI from api.test.datacite.org
         DataCiteDoi foundDoi = dataCiteClient.retrieveDoi("10.82316/9w24-z012");
         assertEquals("10.82316/9w24-z012", foundDoi.getId());
@@ -56,11 +58,36 @@ public class DataCiteClientTest {
         assertEquals("ResearchSpace", foundDoi.getAttributes().getPublisher());
     }
 
+    @Test
+    public void testConnectionWithWrongConnectionDetails() throws URISyntaxException {
+        // test invalid url
+        DataCiteClient dataCiteClientWrongUrl = new DataCiteClientImpl(
+                new URI("https://www.researchspace.com"), "", "", "");
+        DataCiteConnectionException exception = assertThrows(DataCiteConnectionException.class, () -> dataCiteClientWrongUrl.testConnectionToDataCite());
+        assertEquals("Problem with checking status of DataCite server. Is DataCite URL correct?", exception.getMessage());
+
+        // test invalid credentials
+        DataCiteClient dataCiteClientWrongCredentials = new DataCiteClientImpl(
+                new URI("https://api.test.datacite.org"), "invalidUser", "invalidPass", "10.82316");
+        exception = assertThrows(DataCiteConnectionException.class, () -> dataCiteClientWrongCredentials.testConnectionToDataCite());
+        assertEquals("NotFound error when connecting to DataCite Members API. Are connection credentials correct?", exception.getMessage());
+    }
+
+    /**
+     * Requires repository credentials in datacite-config.properties. 
+     * To successfully run this test, add the credentials to config file and uncomment @Test annotation.
+     */
+    //@Test
+    public void testConnectionWithCorrectConnectionDetails() throws URISyntaxException {
+        assertTrue(dataCiteClient.testConnectionToDataCite(), 
+                "test connection to DataCite doesn't work, are datacite-config.properties correct?");
+    }
+
     /**
      * Full workflow for draft DOI. On successful run the draft DOI creted during the test is deleted.
      * 
      * Requires repository credentials in datacite-config.properties. 
-     * To run this test, add the credentials to config file and uncomment @Test annotation.
+     * To successfully run this test, add the credentials to config file and uncomment @Test annotation.
      */
     //@Test
     public void canCreateRetrieveUpdateDeleteDraftDoi() throws MalformedURLException, URISyntaxException {
@@ -119,7 +146,7 @@ public class DataCiteClientTest {
      * on your repository account (as retracted). You probably don't want to run test on production api. 
      * 
      * Requires repository credentials in datacite-config.properties. 
-     * To run this test, add the credentials to config file and uncomment @Test annotation.
+     * To successfully run this test, add the credentials to config file and uncomment @Test annotation.
      */
     //@Test
     public void canRegisterPublishRetractDoi() throws MalformedURLException, URISyntaxException {

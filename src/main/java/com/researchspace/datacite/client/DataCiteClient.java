@@ -1,5 +1,6 @@
 package com.researchspace.datacite.client;
 
+import com.researchspace.datacite.model.DataCiteConnectionException;
 import com.researchspace.datacite.model.DataCiteDoi;
 import com.researchspace.datacite.model.DataCiteDoiRequestWrapper;
 import java.net.MalformedURLException;
@@ -37,4 +38,14 @@ public interface DataCiteClient {
      * Retract published DOI. Only possible for DOIs in 'published' state.
      */
     DataCiteDoi retractDoi(DataCiteDoi doiToRetract);
+
+    /**
+     * Check if this instance of DataCiteClient is able to successfully connect to DataCite.
+     * Currently verifies datacite url, username and password, but doesn't really validate repository prefix.
+     * 
+     * @return true if url/username/password combination can be used to successfully connect to Datacite API. 
+     *      Doesn't verify repository prefix.
+     */
+    boolean testConnectionToDataCite();
+    
 }

@@ -4,7 +4,9 @@ import com.researchspace.datacite.model.DataCiteConnectionException;
 import com.researchspace.datacite.model.DataCiteDoi;
 import com.researchspace.datacite.model.DataCiteDoiRequestWrapper;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.Collections;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 public class DataCiteClientImpl implements DataCiteClient {
@@ -23,6 +26,8 @@ public class DataCiteClientImpl implements DataCiteClient {
     private URI dataciteDoisApiURI;
 
     private String basicAuthenticationHeader;
+    
+    private String username;
     
     private String repositoryPrefix;
 
@@ -39,6 +44,7 @@ public class DataCiteClientImpl implements DataCiteClient {
         this.dataciteDoisApiURI = dataciteApiURI;
         this.restTemplate = new RestTemplate();
         this.basicAuthenticationHeader = String.format("Basic %s", new String(Base64Utils.encode((username + ":" + password).getBytes())));
+        this.username = username;
         this.repositoryPrefix = repositoryPrefix;
     }
 
@@ -115,6 +121,20 @@ public class DataCiteClientImpl implements DataCiteClient {
         } catch (Exception e) {
             throw new DataCiteConnectionException("Problem with checking status of DataCite server. Is DataCite URL correct?", e);
         }
+        
+        /* let's try finding the provided prefix, which can be done with unauthorized user */
+        try {
+            URI uri = dataciteDoisApiURI.resolve("/client-prefixes?" 
+                    + "client-id=" + URLEncoder.encode(username) 
+                    + "&prefix-id=" + URLEncoder.encode(repositoryPrefix));
+            String prefixResponseBody = restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(getHttpHeaders()), String.class).getBody();
+            if (StringUtils.isEmpty(prefixResponseBody) || prefixResponseBody.contains("\"total\":0")) {
+                throw new DataCiteConnectionException("Cannot find repository prefix for provided client-id and prefix-id. Is repositoryPrefix correct?", null);
+            }
+                
+        } catch (RestClientException e) {
+            throw new DataCiteConnectionException("Problem with checking repository prefix. Are DataCite URL and repositoryPrefix correct?", e);
+        }
             
         /* next let's try to use authenticated DataCite API, to validate credentials */
         try {    
@@ -128,7 +148,7 @@ public class DataCiteClientImpl implements DataCiteClient {
 
         } catch (DataCiteConnectionException e) {
             if (e.getCause() instanceof HttpClientErrorException.Forbidden) {
-                // that's expected! we didn't provide repository prefix, which for correct credentials results in Forbidden exception
+                // that's expected - we didn't provide repository prefix, which for correct credentials results in Forbidden exception
                 return true;
             } else {
                 throw e; // rethrow

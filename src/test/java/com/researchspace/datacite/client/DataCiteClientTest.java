@@ -66,9 +66,21 @@ public class DataCiteClientTest {
         DataCiteConnectionException exception = assertThrows(DataCiteConnectionException.class, () -> dataCiteClientWrongUrl.testConnectionToDataCite());
         assertEquals("Problem with checking status of DataCite server. Is DataCite URL correct?", exception.getMessage());
 
+        // test invalid prefix
+        DataCiteClient dataCiteClientWrongPrefix = new DataCiteClientImpl(
+                new URI("https://api.test.datacite.org"), "", "", "asdf");
+        exception = assertThrows(DataCiteConnectionException.class, () -> dataCiteClientWrongPrefix.testConnectionToDataCite());
+        assertEquals("Cannot find repository prefix for provided client-id and prefix-id. Is repositoryPrefix correct?", exception.getMessage());
+        
+        // test invalid username/prefix combination
+        DataCiteClient dataCiteClientWrongUsernamePrefix = new DataCiteClientImpl(
+                new URI("https://api.test.datacite.org"), "AJFO.JIJEMD", "", "asdf");
+        exception = assertThrows(DataCiteConnectionException.class, () -> dataCiteClientWrongUsernamePrefix.testConnectionToDataCite());
+        assertEquals("Cannot find repository prefix for provided client-id and prefix-id. Is repositoryPrefix correct?", exception.getMessage());
+        
         // test invalid credentials
         DataCiteClient dataCiteClientWrongCredentials = new DataCiteClientImpl(
-                new URI("https://api.test.datacite.org"), "invalidUser", "invalidPass", "10.82316");
+                new URI("https://api.test.datacite.org"), "AJFO.JIJEMD", "invalidPass", "10.82316");
         exception = assertThrows(DataCiteConnectionException.class, () -> dataCiteClientWrongCredentials.testConnectionToDataCite());
         assertEquals("NotFound error when connecting to DataCite Members API. Are connection credentials correct?", exception.getMessage());
     }

@@ -23,6 +23,7 @@ public class DataCiteDoiAttributes {
     private int publicationYear;
     private List<Subject> subjects;
     private List<Description> descriptions;
+    private List<GeoLocation> geoLocations;
     private List<DoiDate> dates;
     private List<Object> contributors;
     private Types types;
@@ -95,6 +96,50 @@ public class DataCiteDoiAttributes {
     public static class Description {
         private String description;
         private String descriptionType;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class GeoLocation {
+        private GeoLocationPoint geoLocationPoint;
+        private GeoLocationBox geoLocationBox;
+        private String geoLocationPlace;
+        private List<GeoLocationPolygonPoint> geoLocationPolygon;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class GeoLocationPoint {
+        private String pointLatitude;
+        private String pointLongitude;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class GeoLocationPolygonPoint {
+        private GeoLocationPoint polygonPoint;
+        
+        public GeoLocationPolygonPoint(String pointLatitude, String pointLongitude) {
+            polygonPoint = new GeoLocationPoint(pointLatitude, pointLongitude);
+        }
+        
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class GeoLocationBox {
+        private String westBoundLongitude;
+        private String eastBoundLongitude;
+        private String southBoundLatitude;
+        private String northBoundLatitude;
     }
 
     @Data

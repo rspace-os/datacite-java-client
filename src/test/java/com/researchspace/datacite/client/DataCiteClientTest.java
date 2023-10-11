@@ -56,6 +56,7 @@ public class DataCiteClientTest {
         assertEquals("10.82316/9w24-z012", foundDoi.getId());
         assertEquals("findable", foundDoi.getAttributes().getState());
         assertEquals("ResearchSpace", foundDoi.getAttributes().getPublisher());
+        assertEquals("Edinburgh, Scotland", foundDoi.getAttributes().getGeoLocations().get(0).getGeoLocationPlace());
     }
 
     @Test
@@ -131,12 +132,21 @@ public class DataCiteClientTest {
         doiUpdate.getAttributes().setDescriptions(List.of(new DataCiteDoiAttributes.Description("RSTest desc", "Abstract")));
         doiUpdate.getAttributes().setAlternateIdentifiers(List.of(new DataCiteDoiAttributes.AlternateIdentifier("SA32768", "RSpace Sample")));
         doiUpdate.getAttributes().setDates(List.of(new DataCiteDoiAttributes.DoiDate("2023-07-31", "Other")));
+        doiUpdate.getAttributes().setGeoLocations(List.of(getTestGeolocation()));
         
         DataCiteDoi updatedDoi = dataCiteClient.updateDoi(doiUpdate);
         assertNotNull(updatedDoi);
         assertEquals(1, updatedDoi.getAttributes().getTitles().size());
         assertEquals("updated title", updatedDoi.getAttributes().getTitles().get(0).getTitle());
         assertEquals(1, updatedDoi.getAttributes().getDescriptions().size());
+        assertEquals(1, updatedDoi.getAttributes().getGeoLocations().size());
+        // check geolocation
+        assertEquals("Test Location", updatedDoi.getAttributes().getGeoLocations().get(0).getGeoLocationPlace());
+        assertNotNull(updatedDoi.getAttributes().getGeoLocations().get(0).getGeoLocationPoint());
+        assertNotNull(updatedDoi.getAttributes().getGeoLocations().get(0).getGeoLocationBox());
+        // FIXME: added polygon doesn't seem to be registered by DataCite API. Potentially API doesn't support it yet?
+        //assertNotNull(updatedDoi.getAttributes().getGeoLocations().get(0).getGeoLocationPolygon());
+        
         // partial update nullifies other fields
         assertNull(updatedDoi.getAttributes().getTypes().getResourceTypeGeneral());
         
@@ -151,6 +161,21 @@ public class DataCiteClientTest {
         } catch (HttpClientErrorException.NotFound nfe) {
             // expected
         }
+    }
+
+    private DataCiteDoiAttributes.GeoLocation getTestGeolocation() {
+        DataCiteDoiAttributes.GeoLocation location = new DataCiteDoiAttributes.GeoLocation();
+        location.setGeoLocationPoint(new DataCiteDoiAttributes.GeoLocationPoint("0.12", "1.23"));
+        location.setGeoLocationPlace("Test Location");
+        location.setGeoLocationBox(new DataCiteDoiAttributes.GeoLocationBox("0.12", "0.14", "-0.12", "0.12"));
+        location.setGeoLocationPolygon(List.of(
+                new DataCiteDoiAttributes.GeoLocationPolygonPoint("2", "2"),
+                new DataCiteDoiAttributes.GeoLocationPolygonPoint("-2", "2"),
+                new DataCiteDoiAttributes.GeoLocationPolygonPoint("-2", "-2"),
+                new DataCiteDoiAttributes.GeoLocationPolygonPoint("2", "-2"),
+                new DataCiteDoiAttributes.GeoLocationPolygonPoint("2", "2")));
+        
+        return location;
     }
 
     /**

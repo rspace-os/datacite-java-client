@@ -4,8 +4,11 @@ import com.researchspace.datacite.model.DataCiteConnectionException;
 import com.researchspace.datacite.model.DataCiteDoi;
 import com.researchspace.datacite.model.DataCiteDoiRequestWrapper;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.Collections;
+
+import lombok.SneakyThrows;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.http.HttpEntity;
@@ -50,7 +53,12 @@ public class DataCiteClientImpl implements DataCiteClient {
 
     @Override
     public DataCiteDoi retrieveDoi(String doiId) {
-        URI uri = dataciteDoisApiURI.resolve("/dois/" + doiId);
+        URI uri = null;
+        try {
+            uri = new URI(dataciteDoisApiURI.toString()+doiId+"?affiliation=true");
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
         return restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(getHttpHeaders()),
                 DataCiteDoiRequestWrapper.class).getBody().getData();
     }

@@ -58,6 +58,21 @@ public class DataCiteDoiAttributes {
     public static class Creator {
         private String name;
         private String nameType;
+        private Affiliation [] affiliation;
+        public Creator(String name, String nameType){
+            this(name,nameType,null);
+        }
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Affiliation {
+        private String name;
+        private String affiliationIdentifier;
+        private String affiliationIdentifierScheme;
+        private String schemeURI;
     }
 
     @Data

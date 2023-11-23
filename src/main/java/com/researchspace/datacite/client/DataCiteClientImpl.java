@@ -53,19 +53,14 @@ public class DataCiteClientImpl implements DataCiteClient {
 
     @Override
     public DataCiteDoi retrieveDoi(String doiId) {
-        URI uri = null;
-        try {
-            uri = new URI(dataciteDoisApiURI.toString()+doiId+"?affiliation=true");
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
+        URI uri = dataciteDoisApiURI.resolve("/dois/" + doiId+"/?affiliation=true");
         return restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(getHttpHeaders()),
                 DataCiteDoiRequestWrapper.class).getBody().getData();
     }
 
     @Override
     public DataCiteDoi registerDoi(DataCiteDoi doiToCreate) {
-        URI uri = dataciteDoisApiURI.resolve("/dois");
+        URI uri = dataciteDoisApiURI.resolve("/dois/?affiliation=true");
         DataCiteDoiRequestWrapper doiRequest = new DataCiteDoiRequestWrapper();
         doiToCreate.getAttributes().setPrefix(repositoryPrefix);
         doiRequest.setData(doiToCreate);
@@ -92,7 +87,7 @@ public class DataCiteClientImpl implements DataCiteClient {
 
     @Override
     public DataCiteDoi updateDoi(DataCiteDoi doiUpdate) {
-        URI uri = dataciteDoisApiURI.resolve("/dois/" + doiUpdate.getId());
+        URI uri = dataciteDoisApiURI.resolve("/dois/" + doiUpdate.getId()+"/?affiliation=true");
         DataCiteDoiRequestWrapper doiRequest = new DataCiteDoiRequestWrapper();
         doiRequest.setData(doiUpdate);
         RequestEntity creationRequest = new RequestEntity<>(doiRequest, getHttpHeaders(), HttpMethod.PUT, uri);

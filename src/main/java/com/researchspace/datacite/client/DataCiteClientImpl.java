@@ -4,8 +4,11 @@ import com.researchspace.datacite.model.DataCiteConnectionException;
 import com.researchspace.datacite.model.DataCiteDoi;
 import com.researchspace.datacite.model.DataCiteDoiRequestWrapper;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.Collections;
+
+import lombok.SneakyThrows;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.http.HttpEntity;
@@ -50,14 +53,14 @@ public class DataCiteClientImpl implements DataCiteClient {
 
     @Override
     public DataCiteDoi retrieveDoi(String doiId) {
-        URI uri = dataciteDoisApiURI.resolve("/dois/" + doiId);
+        URI uri = dataciteDoisApiURI.resolve("/dois/" + doiId+"/?affiliation=true");
         return restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(getHttpHeaders()),
                 DataCiteDoiRequestWrapper.class).getBody().getData();
     }
 
     @Override
     public DataCiteDoi registerDoi(DataCiteDoi doiToCreate) {
-        URI uri = dataciteDoisApiURI.resolve("/dois");
+        URI uri = dataciteDoisApiURI.resolve("/dois/?affiliation=true");
         DataCiteDoiRequestWrapper doiRequest = new DataCiteDoiRequestWrapper();
         doiToCreate.getAttributes().setPrefix(repositoryPrefix);
         doiRequest.setData(doiToCreate);
@@ -84,7 +87,7 @@ public class DataCiteClientImpl implements DataCiteClient {
 
     @Override
     public DataCiteDoi updateDoi(DataCiteDoi doiUpdate) {
-        URI uri = dataciteDoisApiURI.resolve("/dois/" + doiUpdate.getId());
+        URI uri = dataciteDoisApiURI.resolve("/dois/" + doiUpdate.getId()+"/?affiliation=true");
         DataCiteDoiRequestWrapper doiRequest = new DataCiteDoiRequestWrapper();
         doiRequest.setData(doiUpdate);
         RequestEntity creationRequest = new RequestEntity<>(doiRequest, getHttpHeaders(), HttpMethod.PUT, uri);

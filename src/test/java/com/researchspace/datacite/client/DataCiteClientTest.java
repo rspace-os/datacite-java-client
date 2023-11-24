@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import com.researchspace.datacite.model.CreatorTestMother;
 import com.researchspace.datacite.model.DataCiteConnectionException;
 import com.researchspace.datacite.model.DataCiteDoi;
 import com.researchspace.datacite.model.DataCiteDoiAttributes;
@@ -57,6 +58,9 @@ public class DataCiteClientTest {
         assertEquals("findable", foundDoi.getAttributes().getState());
         assertEquals("ResearchSpace", foundDoi.getAttributes().getPublisher());
         assertEquals("Edinburgh, Scotland", foundDoi.getAttributes().getGeoLocations().get(0).getGeoLocationPlace());
+        DataCiteDoiAttributes.Affiliation affiliation = foundDoi.getAttributes().getCreators().get(0).getAffiliation()[0];
+        assertNotNull(affiliation);
+        assertNotNull(affiliation.getAffiliationIdentifier());
     }
 
     @Test
@@ -102,12 +106,13 @@ public class DataCiteClientTest {
      * Requires repository credentials in datacite-config.properties. 
      * To successfully run this test, add the credentials to config file and uncomment @Test annotation.
      */
-    //@Test
+//    @Test
     public void canCreateRetrieveUpdateDeleteDraftDoi() throws MalformedURLException, URISyntaxException {
         // create new draft doi
         DataCiteDoi doiToCreate = new DataCiteDoi();
         doiToCreate.getAttributes().setTitles(List.of(new DataCiteDoiAttributes.Title("new title")));
         doiToCreate.getAttributes().setTypes(new DataCiteDoiAttributes.Types("RS type", "PhysicalObject"));
+        doiToCreate.getAttributes().setCreators(List.of(CreatorTestMother.creatorWithAfilliations()));
 
         DataCiteDoi createdDoi = dataCiteClient.registerDoi(doiToCreate);
         assertNotNull(createdDoi);
@@ -116,6 +121,7 @@ public class DataCiteClientTest {
         assertEquals("new title", createdDoi.getAttributes().getTitles().get(0).getTitle());
         assertEquals("PhysicalObject", createdDoi.getAttributes().getTypes().getResourceTypeGeneral());
         assertEquals("draft", createdDoi.getAttributes().getState());
+        assertEquals(CreatorTestMother.affiliation, createdDoi.getAttributes().getCreators().get(0).getAffiliation()[0]);
 
         // retrieve created 
         DataCiteDoi retrievedDoi = dataCiteClient.retrieveDoi(createdDoiId);
@@ -133,6 +139,7 @@ public class DataCiteClientTest {
         doiUpdate.getAttributes().setAlternateIdentifiers(List.of(new DataCiteDoiAttributes.AlternateIdentifier("SA32768", "RSpace Sample")));
         doiUpdate.getAttributes().setDates(List.of(new DataCiteDoiAttributes.DoiDate("2023-07-31", "Other")));
         doiUpdate.getAttributes().setGeoLocations(List.of(getTestGeolocation()));
+        doiUpdate.getAttributes().setCreators(List.of(CreatorTestMother.creatorWithoutAfilliations()));
         
         DataCiteDoi updatedDoi = dataCiteClient.updateDoi(doiUpdate);
         assertNotNull(updatedDoi);
@@ -144,6 +151,8 @@ public class DataCiteClientTest {
         assertEquals("Test Location", updatedDoi.getAttributes().getGeoLocations().get(0).getGeoLocationPlace());
         assertNotNull(updatedDoi.getAttributes().getGeoLocations().get(0).getGeoLocationPoint());
         assertNotNull(updatedDoi.getAttributes().getGeoLocations().get(0).getGeoLocationBox());
+        assertEquals(0, updatedDoi.getAttributes().getCreators().get(0).getAffiliation().length);
+
         // FIXME: added polygon doesn't seem to be registered by DataCite API. Potentially API doesn't support it yet?
         //assertNotNull(updatedDoi.getAttributes().getGeoLocations().get(0).getGeoLocationPolygon());
         

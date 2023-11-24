@@ -58,6 +58,32 @@ public class DataCiteDoiAttributes {
     public static class Creator {
         private String name;
         private String nameType;
+        private Affiliation [] affiliation;
+        public Creator(String name, String nameType){
+            this(name,nameType,null);
+        }
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Affiliation {
+        public static final String SCHEME = "ROR";
+        public static final String SCHEME_URI = "https://ror.org";
+        private String name;
+        //Any requests (get or POST) that do not have ?affiliation=true will have no value in the response from Datacite for these fields.
+        private String affiliationIdentifier;
+        private String affiliationIdentifierScheme;
+        private String schemeUri;
+
+        //this allows requests that do not have ?affiliation=true
+        public Affiliation(String name) {
+            this(name, null);
+        }
+        public Affiliation(String name, String affiliationIdentifier) {
+            this(name, affiliationIdentifier, SCHEME, SCHEME_URI);
+        }
     }
 
     @Data

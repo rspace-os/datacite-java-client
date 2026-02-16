@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.2.0]
 - switch parent pom from rspace-os-parent to rspace-parent (updates/changes a lot of dependencies)
+- fix error on retrieving DOI with non-empty "landingPage" attribute
 
 ## [0.1.0]
 - Switch to using parent pom from rspace-os-parent project

@@ -25,7 +25,8 @@ public class DataCiteDoiTest {
         assertEquals("Fields of Science and Technology (FOS)", convertedDoiResponse.getData().getAttributes().getSubjects().get(0).getSubjectScheme());
         assertEquals("http://www.oecd.org/science/inno/38235147.pdf", convertedDoiResponse.getData().getAttributes().getSubjects().get(0).getSchemeUri());
         assertEquals("RSpace Test Description", convertedDoiResponse.getData().getAttributes().getDescriptions().get(0).getDescription());
-        
+        assertEquals("https://raw.githubusercontent.com/rspace-os/rspace-marketing-resources/main/rspace_logo_300x100.png",
+            convertedDoiResponse.getData().getAttributes().getLandingPage().getUrl());
     }
     
 }

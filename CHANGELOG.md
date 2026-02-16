@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.2.0]
+- switch parent pom from rspace-os-parent to rspace-parent (updates/changes a lot of dependencies)
+
 ## [0.1.0]
 - Switch to using parent pom from rspace-os-parent project
 - Compile with java 17

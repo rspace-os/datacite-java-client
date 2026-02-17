@@ -37,7 +37,7 @@ public class DataCiteDoiAttributes {
     private boolean isActive;
     private String state;
     private Object reason;
-    private String landingPage;
+    private LandingPage landingPage;
     private int viewCount;
     private int downloadCount;
     private int referenceCount;
@@ -184,6 +184,14 @@ public class DataCiteDoiAttributes {
     public static class DoiDate {
         private String date;
         private String dateType;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class LandingPage {
+        private String url;
     }
 
 }

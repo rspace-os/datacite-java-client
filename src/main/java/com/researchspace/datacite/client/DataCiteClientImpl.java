@@ -4,11 +4,10 @@ import com.researchspace.datacite.model.DataCiteConnectionException;
 import com.researchspace.datacite.model.DataCiteDoi;
 import com.researchspace.datacite.model.DataCiteDoiRequestWrapper;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.util.Base64;
 import java.util.Collections;
 
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.http.HttpEntity;
@@ -18,7 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.Base64Utils;
+import org.springframework.http.client.BufferingClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
@@ -45,8 +45,11 @@ public class DataCiteClientImpl implements DataCiteClient {
     public DataCiteClientImpl(URI dataciteApiURI, String username, String password, String repositoryPrefix) {
         Validate.notNull(dataciteApiURI);
         this.dataciteDoisApiURI = dataciteApiURI;
-        this.restTemplate = new RestTemplate();
-        this.basicAuthenticationHeader = String.format("Basic %s", new String(Base64Utils.encode((username + ":" + password).getBytes())));
+        // Buffer request bodies so JSON POSTs carry a Content-Length header. Spring 6.1+
+        // streams bodies of unknown length as chunked, which DataCite rejects.
+        this.restTemplate = new RestTemplate(
+            new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()));
+        this.basicAuthenticationHeader = String.format("Basic %s", Base64.getEncoder().encodeToString((username + ":" + password).getBytes()));
         this.username = username;
         this.repositoryPrefix = repositoryPrefix;
     }

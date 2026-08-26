@@ -17,6 +17,7 @@ public class DataCiteDoiAttributes {
     private String suffix;
     private List<Object> identifiers;
     private List<AlternateIdentifier> alternateIdentifiers;
+    private List<RelatedIdentifier> relatedIdentifiers;
     private List<Creator> creators;
     private List<Title> titles;
     private String publisher;
@@ -175,6 +176,17 @@ public class DataCiteDoiAttributes {
     public static class AlternateIdentifier {
         private String alternateIdentifier;
         private String alternateIdentifierType;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class RelatedIdentifier {
+        private String relationType;
+        private String relatedIdentifier;
+        private String relatedIdentifierType;
+        private String relationTypeInformation;
     }
 
     @Data

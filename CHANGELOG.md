@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.2.0]
+- Adding json include `NON_NULL` for `DataCiteDoiAttributes`
+- Omit an unset number rather than assert it: `publicationYear`, `metadataVersion`, the
+  counters and `active` no longer go on the wire as `0`/`false` on a sparse update
+- Bound the HTTP connect and read timeouts (10s/30s), so an unresponsive DataCite cannot hold a
+  caller open indefinitely
+
 ## [1.1.0]
 - Add `RelatedIdentifier` class variable to `DataCiteDoiAttributes`
 

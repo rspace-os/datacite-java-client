@@ -1,10 +1,7 @@
 package com.researchspace.datacite.client;
 
-import com.researchspace.datacite.model.DataCiteConnectionException;
 import com.researchspace.datacite.model.DataCiteDoi;
-import com.researchspace.datacite.model.DataCiteDoiRequestWrapper;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
+import com.researchspace.datacite.model.DataCiteDoiSearchResult;
 
 public interface DataCiteClient {
 
@@ -12,6 +9,14 @@ public interface DataCiteClient {
      * Retrieve DOI details by its id.
      */
     DataCiteDoi retrieveDoi(String doiId);
+
+    /**
+     * Search DOIs by DataCite's free-text {@code query} parameter, restricted to one
+     * {@code resource-type-id} (for instruments: "instrument"), returning at most one page of
+     * {@code pageSize} DOIs plus the total. Authenticated like every other call; the result is
+     * still the global registry.
+     */
+    DataCiteDoiSearchResult searchDois(String query, String resourceTypeId, int pageSize);
 
     /**
      * Register/mint new DOI.

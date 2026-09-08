@@ -3,6 +3,7 @@ package com.researchspace.datacite.client;
 import com.researchspace.datacite.model.DataCiteConnectionException;
 import com.researchspace.datacite.model.DataCiteDoi;
 import com.researchspace.datacite.model.DataCiteDoiRequestWrapper;
+import com.researchspace.datacite.model.DataCiteDoiSearchResult;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.time.Duration;
@@ -25,6 +26,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 public class DataCiteClientImpl implements DataCiteClient {
 
@@ -140,6 +142,27 @@ public class DataCiteClientImpl implements DataCiteClient {
         URI uri = dataciteDoisApiURI.resolve("/dois/" + checkedDoiPath(doiId) + "/?affiliation=true");
         return restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(getHttpHeaders()),
                 DataCiteDoiRequestWrapper.class).getBody().getData();
+    }
+
+    @Override
+    public DataCiteDoiSearchResult searchDois(String query, String resourceTypeId, int pageSize) {
+        URI uri = UriComponentsBuilder.fromUri(dataciteDoisApiURI.resolve("/dois"))
+                .queryParam("query", query)
+                .queryParam("resource-type-id", resourceTypeId)
+                .queryParam("page[size]", pageSize)
+                .queryParam("affiliation", "true")
+                .build().encode().toUri();
+        try {
+            return restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(getHttpHeaders()),
+                    DataCiteDoiSearchResult.class).getBody();
+        } catch (RestClientException e) {
+            throw new DataCiteConnectionException("Problem with searching DOIs in DataCite API.", e);
+        }
+    }
+
+    /** Visible for testing: lets a MockRestServiceServer bind to the client's own template. */
+    RestTemplate getRestTemplate() {
+        return restTemplate;
     }
 
     @Override

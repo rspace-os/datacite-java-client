@@ -51,7 +51,7 @@ public class DataCiteDoiAttributes {
     private String event;
     private String prefix;
     private String suffix;
-    private List<Object> identifiers;
+    private List<Identifier> identifiers;
     private List<AlternateIdentifier> alternateIdentifiers;
     private List<RelatedIdentifier> relatedIdentifiers;
     private List<Creator> creators;
@@ -77,7 +77,7 @@ public class DataCiteDoiAttributes {
     private List<Description> descriptions;
     private List<GeoLocation> geoLocations;
     private List<DoiDate> dates;
-    private List<Object> contributors;
+    private List<Contributor> contributors;
     private Types types;
     private Object version;
     private String xml;
@@ -131,6 +131,31 @@ public class DataCiteDoiAttributes {
         public Creator(String name, String nameType){
             this(name,nameType,null);
         }
+    }
+
+    /**
+     * DataCite 7. Contributor. PIDINST maps the instrument Owner to a contributor with
+     * {@code contributorType = HostingInstitution}, which is what the RSpace import reads.
+     */
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Contributor {
+        private String name;
+        private String nameType;
+        private String contributorType;
+        private Affiliation [] affiliation;
+    }
+
+    /** The {@code identifiers} block of a retrieved DOI: aliases and other local identifiers. */
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Identifier {
+        private String identifier;
+        private String identifierType;
     }
 
     @Data

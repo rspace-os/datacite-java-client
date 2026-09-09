@@ -164,4 +164,17 @@ public class DataCiteClientSearchTest {
         assertEquals(0, result.getData().size());
         server.verify();
     }
+
+    /**
+     * The other structural arguments are rejected locally, so this one must be too: sending it and
+     * wrapping DataCite's refusal reports a caller's own mistake as a connection failure.
+     */
+    @Test
+    public void searchDoisRefusesANonPositivePageSize() {
+        assertThrows(IllegalArgumentException.class,
+            () -> client.searchDois("Zeiss", "instrument", "findable", 0));
+        assertThrows(IllegalArgumentException.class,
+            () -> client.searchDois("Zeiss", "instrument", "findable", -1));
+        server.verify();
+    }
 }

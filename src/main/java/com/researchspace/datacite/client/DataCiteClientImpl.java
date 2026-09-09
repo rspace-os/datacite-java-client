@@ -154,6 +154,9 @@ public class DataCiteClientImpl implements DataCiteClient {
         // whole registry and a blank type would widen past instruments. Both are caller bugs.
         Validate.isTrue(StringUtils.isNotBlank(query), "query must not be blank");
         Validate.isTrue(StringUtils.isNotBlank(resourceTypeId), "resourceTypeId must not be blank");
+        // rejected here rather than by DataCite, so a caller's own mistake is not reported back as
+        // a DataCiteConnectionException, i.e. as though the registry were unreachable
+        Validate.isTrue(pageSize > 0, "pageSize must be greater than zero");
         /*
          * Caller values go in as URI template variables, never concatenated into the builder.
          * Spring's QUERY_PARAM encoding escapes '=' and '&', so concatenation cannot inject a

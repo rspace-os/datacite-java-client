@@ -16,7 +16,8 @@ public interface DataCiteClient {
      * {@code state}, returning at most one page of {@code pageSize} DOIs plus the total.
      * Authenticated like every other call; the result is still the global registry.
      *
-     * <p>{@code query} and {@code resourceTypeId} must both be non-blank and are rejected with an
+     * <p>{@code pageSize} must be greater than zero; DataCite's own maximum is 1000. {@code query}
+     * and {@code resourceTypeId} must both be non-blank and are rejected with an
      * {@link IllegalArgumentException} otherwise. DataCite reads a blank one as "no filter" rather
      * than "no results", so a blank query would return the whole registry and a blank resource type
      * would widen past instruments. Caller-supplied text is percent-encoded, including {@code +},

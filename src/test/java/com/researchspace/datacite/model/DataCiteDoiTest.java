@@ -261,4 +261,23 @@ public class DataCiteDoiTest {
         assertNotNull(DataCiteDoiAttributes.class.getMethod("setContributors", List.class),
                 "setContributors(List) must still exist");
     }
+
+    /**
+     * The non-null rule has to reach the nested affiliation too. DataCite omits the identifier
+     * properties entirely unless a request asks for affiliations, so serializing them back as
+     * explicit nulls would clear registered values on the next upsert - the same hazard the
+     * contributor round trip above exists to close.
+     */
+    @Test
+    public void aNameOnlyAffiliationSurvivesTheRoundTripWithoutGainingNulls() throws IOException {
+        String contributor = "{\"name\":\"ESRF\",\"contributorType\":\"HostingInstitution\","
+            + "\"affiliation\":[{\"name\":\"European Synchrotron Radiation Facility\"}]}";
+        ObjectMapper mapper = new ObjectMapper();
+
+        JsonNode reserialized = mapper.valueToTree(
+                mapper.readValue(contributor, DataCiteDoiAttributes.Contributor.class));
+
+        assertEquals(mapper.readTree(contributor), reserialized,
+                "an affiliation with only a name must not gain null identifier properties");
+    }
 }

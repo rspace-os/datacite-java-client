@@ -181,10 +181,17 @@ public class DataCiteDoiAttributes {
         private String identifierType;
     }
 
+    /**
+     * Shared by {@link Creator} and {@link Contributor}. Non-null for the same reason the enclosing
+     * class is: DataCite omits the three identifier properties entirely from a response that did
+     * not ask for affiliations, and sending them back as explicit nulls would clear whatever is
+     * registered against them, exactly as an explicit null does at the top level.
+     */
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Affiliation {
         public static final String SCHEME = "ROR";
         public static final String SCHEME_URI = "https://ror.org";

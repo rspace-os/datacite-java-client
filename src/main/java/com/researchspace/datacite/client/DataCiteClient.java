@@ -12,11 +12,18 @@ public interface DataCiteClient {
 
     /**
      * Search DOIs by DataCite's free-text {@code query} parameter, restricted to one
-     * {@code resource-type-id} (for instruments: "instrument"), returning at most one page of
-     * {@code pageSize} DOIs plus the total. Authenticated like every other call; the result is
-     * still the global registry.
+     * {@code resource-type-id} (for instruments: "instrument") and optionally to one
+     * {@code state}, returning at most one page of {@code pageSize} DOIs plus the total.
+     * Authenticated like every other call; the result is still the global registry.
+     *
+     * <p>{@code state} is DataCite's own request parameter, not a term in {@code query}: the
+     * Lucene form {@code state:findable} matches nothing (checked against api.test.datacite.org,
+     * September 2026). Pass {@code "findable"} to see only publicly resolvable DOIs, or
+     * {@code null} for every state the credentials can see. Filtering here rather than in the
+     * caller keeps {@code meta.total} consistent with the page returned.
      */
-    DataCiteDoiSearchResult searchDois(String query, String resourceTypeId, int pageSize);
+    DataCiteDoiSearchResult searchDois(
+            String query, String resourceTypeId, String state, int pageSize);
 
     /**
      * Register/mint new DOI.

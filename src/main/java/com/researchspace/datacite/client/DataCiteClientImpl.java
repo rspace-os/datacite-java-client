@@ -145,10 +145,15 @@ public class DataCiteClientImpl implements DataCiteClient {
     }
 
     @Override
-    public DataCiteDoiSearchResult searchDois(String query, String resourceTypeId, int pageSize) {
-        URI uri = UriComponentsBuilder.fromUri(dataciteDoisApiURI.resolve("/dois"))
+    public DataCiteDoiSearchResult searchDois(
+            String query, String resourceTypeId, String state, int pageSize) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUri(dataciteDoisApiURI.resolve("/dois"))
                 .queryParam("query", query)
-                .queryParam("resource-type-id", resourceTypeId)
+                .queryParam("resource-type-id", resourceTypeId);
+        if (StringUtils.isNotBlank(state)) {
+            builder.queryParam("state", state);
+        }
+        URI uri = builder
                 .queryParam("page[size]", pageSize)
                 .queryParam("affiliation", "true")
                 .build().encode().toUri();

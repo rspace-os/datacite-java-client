@@ -23,7 +23,7 @@ public class DataCiteClientSearchTest {
 
     private static final String SEARCH_URL =
         "https://api.test.datacite.org/dois?query=Zeiss%20microscope&resource-type-id=instrument"
-            + "&page%5Bsize%5D=50&affiliation=true";
+            + "&state=findable&page%5Bsize%5D=50&affiliation=true";
 
     private static final String SEARCH_RESPONSE = "{"
         + "\"data\":[{\"id\":\"10.15151/esrf-instr-gco8\",\"type\":\"dois\",\"attributes\":{"
@@ -54,7 +54,7 @@ public class DataCiteClientSearchTest {
             .andExpect(header("authorization", "Basic dXNlcjpzZWNyZXQ="))
             .andRespond(withSuccess(SEARCH_RESPONSE, MediaType.APPLICATION_JSON));
 
-        DataCiteDoiSearchResult result = client.searchDois("Zeiss microscope", "instrument", 50);
+        DataCiteDoiSearchResult result = client.searchDois("Zeiss microscope", "instrument", "findable", 50);
 
         assertEquals(63, result.getMeta().getTotal());
         assertEquals(1, result.getData().size());
@@ -70,6 +70,18 @@ public class DataCiteClientSearchTest {
         server.expect(requestTo(SEARCH_URL)).andRespond(withServerError());
 
         assertThrows(DataCiteConnectionException.class,
-            () -> client.searchDois("Zeiss microscope", "instrument", 50));
+            () -> client.searchDois("Zeiss microscope", "instrument", "findable", 50));
+    }
+
+    @Test
+    public void searchDoisOmitsTheStateParameterWhenNoStateIsAsked() {
+        server.expect(requestTo(
+                "https://api.test.datacite.org/dois?query=Zeiss&resource-type-id=instrument"
+                    + "&page%5Bsize%5D=50&affiliation=true"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withSuccess("{\"data\":[],\"meta\":{\"total\":0}}", MediaType.APPLICATION_JSON));
+
+        assertEquals(0, client.searchDois("Zeiss", "instrument", null, 50).getMeta().getTotal());
+        server.verify();
     }
 }

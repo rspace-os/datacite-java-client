@@ -16,6 +16,12 @@ public interface DataCiteClient {
      * {@code state}, returning at most one page of {@code pageSize} DOIs plus the total.
      * Authenticated like every other call; the result is still the global registry.
      *
+     * <p>{@code query} and {@code resourceTypeId} must both be non-blank and are rejected with an
+     * {@link IllegalArgumentException} otherwise. DataCite reads a blank one as "no filter" rather
+     * than "no results", so a blank query would return the whole registry and a blank resource type
+     * would widen past instruments. Caller-supplied text is percent-encoded, including {@code +},
+     * which a receiver would otherwise decode as a space.
+     *
      * <p>{@code state} is DataCite's own request parameter, not a term in {@code query}: the
      * Lucene form {@code state:findable} matches nothing (checked against api.test.datacite.org,
      * September 2026). Pass {@code "findable"} to see only publicly resolvable DOIs, or

@@ -208,4 +208,57 @@ public class DataCiteDoiTest {
 
         assertEquals(2026, attributes.get("publicationYear").asInt());
     }
+
+    /**
+     * The reason {@code contributors} and {@code identifiers} may be typed at all. As
+     * {@code List<Object>} Jackson round-tripped every property it read; typing them keeps that
+     * true only for as long as every DataCite property is declared. A DataCite PUT is an upsert, so
+     * anything dropped here is erased on the registered record.
+     */
+    @Test
+    public void aFullContributorSurvivesTheRoundTrip() throws IOException {
+        String contributor = "{\"name\":\"Doe, Jane\",\"nameType\":\"Personal\","
+            + "\"contributorType\":\"HostingInstitution\",\"givenName\":\"Jane\","
+            + "\"familyName\":\"Doe\",\"nameIdentifiers\":[{\"nameIdentifier\":\"0000-0001-2345-6789\","
+            + "\"nameIdentifierScheme\":\"ORCID\",\"schemeUri\":\"https://orcid.org\"}]}";
+        ObjectMapper mapper = new ObjectMapper();
+
+        DataCiteDoiAttributes.Contributor parsed =
+                mapper.readValue(contributor, DataCiteDoiAttributes.Contributor.class);
+        JsonNode reserialized = mapper.valueToTree(parsed);
+
+        assertEquals(mapper.readTree(contributor), reserialized,
+                "every contributor property DataCite sent must go back unchanged");
+    }
+
+    /** Same guarantee for the identifiers block, whose two properties are the whole schema. */
+    @Test
+    public void aFullIdentifierSurvivesTheRoundTrip() throws IOException {
+        String identifier = "{\"identifier\":\"ID21\",\"identifierType\":\"alias\"}";
+        ObjectMapper mapper = new ObjectMapper();
+
+        JsonNode reserialized = mapper.valueToTree(
+                mapper.readValue(identifier, DataCiteDoiAttributes.Identifier.class));
+
+        assertEquals(mapper.readTree(identifier), reserialized);
+    }
+
+    /**
+     * {@code identifiers} and {@code contributors} were widened from {@code List<Object>} to typed
+     * lists. Erasure keeps the accessors binary compatible, which is what lets a consumer built
+     * against an older jar keep running; the same guarantee the two accessor tests above pin.
+     */
+    @Test
+    public void identifiersAndContributorsAccessorsStayBinaryCompatible() throws Exception {
+        assertEquals(List.class,
+                DataCiteDoiAttributes.class.getMethod("getIdentifiers").getReturnType(),
+                "getIdentifiers must keep returning List");
+        assertNotNull(DataCiteDoiAttributes.class.getMethod("setIdentifiers", List.class),
+                "setIdentifiers(List) must still exist");
+        assertEquals(List.class,
+                DataCiteDoiAttributes.class.getMethod("getContributors").getReturnType(),
+                "getContributors must keep returning List");
+        assertNotNull(DataCiteDoiAttributes.class.getMethod("setContributors", List.class),
+                "setContributors(List) must still exist");
+    }
 }

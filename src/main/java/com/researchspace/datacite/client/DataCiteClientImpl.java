@@ -9,6 +9,9 @@ import java.net.URLEncoder;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -147,27 +150,40 @@ public class DataCiteClientImpl implements DataCiteClient {
     @Override
     public DataCiteDoiSearchResult searchDois(
             String query, String resourceTypeId, String state, int pageSize) {
+        // Blank is not "no results" to DataCite, it is "no filter": a blank query would return the
+        // whole registry and a blank type would widen past instruments. Both are caller bugs.
+        Validate.isTrue(StringUtils.isNotBlank(query), "query must not be blank");
+        Validate.isTrue(StringUtils.isNotBlank(resourceTypeId), "resourceTypeId must not be blank");
+        /*
+         * Caller values go in as URI template variables, never concatenated into the builder.
+         * Spring's QUERY_PARAM encoding escapes '=' and '&', so concatenation cannot inject a
+         * parameter, but it permits '+' because '+' is legal in a query component - and a receiver
+         * decodes that as a space, so a search for "C++" silently searched "C  ". Only expansion of
+         * a template variable percent-encodes it.
+         */
+        Map<String, Object> values = new HashMap<>();
+        values.put("query", query);
+        values.put("resourceTypeId", resourceTypeId);
         UriComponentsBuilder builder = UriComponentsBuilder.fromUri(dataciteDoisApiURI.resolve("/dois"))
-                .queryParam("query", query)
-                .queryParam("resource-type-id", resourceTypeId);
+                .queryParam("query", "{query}")
+                .queryParam("resource-type-id", "{resourceTypeId}");
         if (StringUtils.isNotBlank(state)) {
-            builder.queryParam("state", state);
+            builder.queryParam("state", "{state}");
+            values.put("state", state);
         }
         URI uri = builder
                 .queryParam("page[size]", pageSize)
                 .queryParam("affiliation", "true")
-                .build().encode().toUri();
+                .encode().buildAndExpand(values).toUri();
         try {
-            return restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(getHttpHeaders()),
-                    DataCiteDoiSearchResult.class).getBody();
+            DataCiteDoiSearchResult body = restTemplate.exchange(uri, HttpMethod.GET,
+                    new HttpEntity<>(getHttpHeaders()), DataCiteDoiSearchResult.class).getBody();
+            // the result type defaults data and meta to empty so callers need no null check;
+            // returning a null body straight out would defeat that at the first use site
+            return Objects.requireNonNullElseGet(body, DataCiteDoiSearchResult::new);
         } catch (RestClientException e) {
             throw new DataCiteConnectionException("Problem with searching DOIs in DataCite API.", e);
         }
-    }
-
-    /** Visible for testing: lets a MockRestServiceServer bind to the client's own template. */
-    RestTemplate getRestTemplate() {
-        return restTemplate;
     }
 
     @Override

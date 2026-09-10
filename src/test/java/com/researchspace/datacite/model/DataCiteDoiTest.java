@@ -231,6 +231,28 @@ public class DataCiteDoiTest {
                 "every contributor property DataCite sent must go back unchanged");
     }
 
+    /**
+     * Creator shares the affiliation type with Contributor and is the path the RSpace consumer
+     * exercises on every register and update, so it is the one that actually has to hold.
+     */
+    @Test
+    public void aCreatorAffiliationSurvivesTheRoundTripBothEmptyAndPopulated() throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        String nameOnly = "{\"name\":\"ESRF\",\"nameType\":\"Organizational\","
+            + "\"affiliation\":[{\"name\":\"European Synchrotron Radiation Facility\"}]}";
+        String populated = "{\"name\":\"ESRF\",\"nameType\":\"Organizational\","
+            + "\"affiliation\":[{\"name\":\"European Synchrotron Radiation Facility\","
+            + "\"affiliationIdentifier\":\"https://ror.org/02550n020\","
+            + "\"affiliationIdentifierScheme\":\"ROR\",\"schemeUri\":\"https://ror.org\"}]}";
+
+        for (String json : new String[] {nameOnly, populated}) {
+            JsonNode reserialized = mapper.valueToTree(
+                    mapper.readValue(json, DataCiteDoiAttributes.Creator.class));
+            assertEquals(mapper.readTree(json), reserialized,
+                    "a creator's affiliation must go back exactly as it arrived");
+        }
+    }
+
     /** Same guarantee for the identifiers block, whose two properties are the whole schema. */
     @Test
     public void aFullIdentifierSurvivesTheRoundTrip() throws IOException {

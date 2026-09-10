@@ -170,11 +170,24 @@ public class DataCiteClientSearchTest {
      * wrapping DataCite's refusal reports a caller's own mistake as a connection failure.
      */
     @Test
-    public void searchDoisRefusesANonPositivePageSize() {
-        assertThrows(IllegalArgumentException.class,
-            () -> client.searchDois("Zeiss", "instrument", "findable", 0));
+    public void searchDoisRefusesANegativePageSize() {
         assertThrows(IllegalArgumentException.class,
             () -> client.searchDois("Zeiss", "instrument", "findable", -1));
+    }
+
+    /** Zero is not an error to DataCite: it is how you ask for the count alone. */
+    @Test
+    public void searchDoisPassesAZeroPageSizeThroughAsACountOnlyQuery() {
+        server.expect(requestTo(
+                "https://api.test.datacite.org/dois?query=Zeiss&resource-type-id=instrument"
+                    + "&page%5Bsize%5D=0&affiliation=true"))
+            .andRespond(withSuccess("{\"data\":[],\"meta\":{\"total\":41}}",
+                MediaType.APPLICATION_JSON));
+
+        DataCiteDoiSearchResult result = client.searchDois("Zeiss", "instrument", null, 0);
+
+        assertEquals(41, result.getMeta().getTotal());
+        assertEquals(0, result.getData().size());
         server.verify();
     }
 }

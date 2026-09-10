@@ -182,10 +182,12 @@ public class DataCiteDoiAttributes {
     }
 
     /**
-     * Shared by {@link Creator} and {@link Contributor}. Non-null for the same reason the enclosing
-     * class is: DataCite omits the three identifier properties entirely from a response that did
-     * not ask for affiliations, and sending them back as explicit nulls would clear whatever is
-     * registered against them, exactly as an explicit null does at the top level.
+     * Shared by {@link Creator} and {@link Contributor}. Non-null so an affiliation carrying only a
+     * name serializes as it arrived, rather than gaining three null identifier properties.
+     *
+     * <p>Tidiness, not a correctness fix: {@code creators} and {@code contributors} are top-level
+     * properties, so an update replaces each array whole and a null inside an element clears
+     * nothing. The top-level "absent preserves, null clears" rule does not recurse.
      */
     @Data
     @AllArgsConstructor

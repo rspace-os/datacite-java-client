@@ -120,16 +120,31 @@ public class DataCiteDoiAttributes {
     private String published;
     private Date updated;
 
+    /**
+     * DataCite 2. Creator. All seven properties DataCite defines are declared, for the reason given
+     * on {@link Contributor}: {@code creators} is replaced whole by a PUT, and live instrument DOIs
+     * carry {@code nameIdentifiers}, so an undeclared property is erased on the registered record.
+     */
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Creator {
         private String name;
         private String nameType;
+        private String givenName;
+        private String familyName;
+        private String lang;
+        private NameIdentifier [] nameIdentifiers;
         private Affiliation [] affiliation;
         public Creator(String name, String nameType){
             this(name,nameType,null);
+        }
+        public Creator(String name, String nameType, Affiliation [] affiliation){
+            this.name = name;
+            this.nameType = nameType;
+            this.affiliation = affiliation;
         }
     }
 
@@ -155,6 +170,7 @@ public class DataCiteDoiAttributes {
         private String contributorType;
         private String givenName;
         private String familyName;
+        private String lang;
         private NameIdentifier [] nameIdentifiers;
         private Affiliation [] affiliation;
     }

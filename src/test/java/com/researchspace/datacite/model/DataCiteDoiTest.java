@@ -218,7 +218,7 @@ public class DataCiteDoiTest {
     @Test
     public void aFullContributorSurvivesTheRoundTrip() throws IOException {
         String contributor = "{\"name\":\"Doe, Jane\",\"nameType\":\"Personal\","
-            + "\"contributorType\":\"HostingInstitution\",\"givenName\":\"Jane\","
+            + "\"contributorType\":\"HostingInstitution\",\"lang\":\"en\",\"givenName\":\"Jane\","
             + "\"familyName\":\"Doe\",\"nameIdentifiers\":[{\"nameIdentifier\":\"0000-0001-2345-6789\","
             + "\"nameIdentifierScheme\":\"ORCID\",\"schemeUri\":\"https://orcid.org\"}]}";
         ObjectMapper mapper = new ObjectMapper();
@@ -232,11 +232,13 @@ public class DataCiteDoiTest {
     }
 
     /**
-     * Creator shares the affiliation type with Contributor and is the path the RSpace consumer
-     * exercises on every register and update, so it is the one that actually has to hold.
+     * Creator is the path the RSpace consumer exercises on every register and update, so it is the
+     * one that actually has to hold. The ORCID fixture is the real shape: creators on live
+     * instrument DOIs carry nameIdentifiers, and creators is a top-level property replaced whole by
+     * a PUT, so anything not declared here is erased on the registered record.
      */
     @Test
-    public void aCreatorAffiliationSurvivesTheRoundTripBothEmptyAndPopulated() throws IOException {
+    public void aFullCreatorSurvivesTheRoundTrip() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         String nameOnly = "{\"name\":\"ESRF\",\"nameType\":\"Organizational\","
             + "\"affiliation\":[{\"name\":\"European Synchrotron Radiation Facility\"}]}";
@@ -244,12 +246,17 @@ public class DataCiteDoiTest {
             + "\"affiliation\":[{\"name\":\"European Synchrotron Radiation Facility\","
             + "\"affiliationIdentifier\":\"https://ror.org/02550n020\","
             + "\"affiliationIdentifierScheme\":\"ROR\",\"schemeUri\":\"https://ror.org\"}]}";
+        String withOrcid = "{\"name\":\"Doe, Jane\",\"nameType\":\"Personal\","
+            + "\"givenName\":\"Jane\",\"familyName\":\"Doe\",\"lang\":\"en\","
+            + "\"nameIdentifiers\":[{\"nameIdentifier\":\"https://orcid.org/0000-0001-8935-5681\","
+            + "\"nameIdentifierScheme\":\"ORCID\",\"schemeUri\":\"https://orcid.org\"}],"
+            + "\"affiliation\":[{\"name\":\"European Synchrotron Radiation Facility\"}]}";
 
-        for (String json : new String[] {nameOnly, populated}) {
+        for (String json : new String[] {nameOnly, populated, withOrcid}) {
             JsonNode reserialized = mapper.valueToTree(
                     mapper.readValue(json, DataCiteDoiAttributes.Creator.class));
             assertEquals(mapper.readTree(json), reserialized,
-                    "a creator's affiliation must go back exactly as it arrived");
+                    "every creator property DataCite sent must go back unchanged");
         }
     }
 

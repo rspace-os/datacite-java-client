@@ -1,10 +1,7 @@
 package com.researchspace.datacite.client;
 
-import com.researchspace.datacite.model.DataCiteConnectionException;
 import com.researchspace.datacite.model.DataCiteDoi;
-import com.researchspace.datacite.model.DataCiteDoiRequestWrapper;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
+import com.researchspace.datacite.model.DataCiteDoiSearchResult;
 
 public interface DataCiteClient {
 
@@ -12,6 +9,30 @@ public interface DataCiteClient {
      * Retrieve DOI details by its id.
      */
     DataCiteDoi retrieveDoi(String doiId);
+
+    /**
+     * Search DOIs by DataCite's free-text {@code query} parameter, restricted to one
+     * {@code resource-type-id} (for instruments: "instrument") and optionally to one
+     * {@code state}, returning at most one page of {@code pageSize} DOIs plus the total.
+     * Authenticated like every other call; the result is still the global registry.
+     *
+     * <p>{@code pageSize} must not be negative; zero is DataCite's count-only query. No ceiling is
+     * enforced here because DataCite does not reject a large one, it silently caps the page at its
+     * own maximum of 1000. {@code query}
+     * and {@code resourceTypeId} must both be non-blank and are rejected with an
+     * {@link IllegalArgumentException} otherwise. DataCite reads a blank one as "no filter" rather
+     * than "no results", so a blank query would return the whole registry and a blank resource type
+     * would widen past instruments. Caller-supplied text is percent-encoded, including {@code +},
+     * which a receiver would otherwise decode as a space.
+     *
+     * <p>{@code state} is DataCite's own request parameter, not a term in {@code query}: the
+     * Lucene form {@code state:findable} matches nothing (checked against api.test.datacite.org,
+     * September 2026). Pass {@code "findable"} to see only publicly resolvable DOIs, or
+     * {@code null} for every state the credentials can see. Filtering here rather than in the
+     * caller keeps {@code meta.total} consistent with the page returned.
+     */
+    DataCiteDoiSearchResult searchDois(
+            String query, String resourceTypeId, String state, int pageSize);
 
     /**
      * Register/mint new DOI.

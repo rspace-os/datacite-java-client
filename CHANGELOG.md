@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.3.0]
+- Adding `contributora`and `identifiers` into `DataCiteDoiAttributes`
+- Adding `searchDois`end point
+
 ## [1.2.0]
 - Adding json include `NON_NULL` for `DataCiteDoiAttributes`
 - Omit an unset number rather than assert it: `publicationYear`, `metadataVersion`, the

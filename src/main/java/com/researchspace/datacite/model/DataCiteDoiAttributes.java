@@ -51,7 +51,7 @@ public class DataCiteDoiAttributes {
     private String event;
     private String prefix;
     private String suffix;
-    private List<Object> identifiers;
+    private List<Identifier> identifiers;
     private List<AlternateIdentifier> alternateIdentifiers;
     private List<RelatedIdentifier> relatedIdentifiers;
     private List<Creator> creators;
@@ -77,7 +77,7 @@ public class DataCiteDoiAttributes {
     private List<Description> descriptions;
     private List<GeoLocation> geoLocations;
     private List<DoiDate> dates;
-    private List<Object> contributors;
+    private List<Contributor> contributors;
     private Types types;
     private Object version;
     private String xml;
@@ -120,23 +120,96 @@ public class DataCiteDoiAttributes {
     private String published;
     private Date updated;
 
+    /**
+     * DataCite 2. Creator. All seven properties DataCite defines are declared, for the reason given
+     * on {@link Contributor}: {@code creators} is replaced whole by a PUT, and live instrument DOIs
+     * carry {@code nameIdentifiers}, so an undeclared property is erased on the registered record.
+     */
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Creator {
         private String name;
         private String nameType;
+        private String givenName;
+        private String familyName;
+        private String lang;
+        private NameIdentifier [] nameIdentifiers;
         private Affiliation [] affiliation;
         public Creator(String name, String nameType){
             this(name,nameType,null);
         }
+        public Creator(String name, String nameType, Affiliation [] affiliation){
+            this.name = name;
+            this.nameType = nameType;
+            this.affiliation = affiliation;
+        }
     }
 
+    /**
+     * DataCite 7. Contributor. PIDINST maps the instrument Owner to a contributor with
+     * {@code contributorType = HostingInstitution}, which is what the RSpace import reads.
+     *
+     * <p>Every property DataCite defines for a contributor is declared here, not only the ones
+     * RSpace reads. This field used to be a {@code List<Object>}, which Jackson filled with
+     * {@code LinkedHashMap}s that serialized back unchanged; typing it would otherwise have made a
+     * retrieve-mutate-{@code updateDoi} round trip silently drop whatever is not modelled, and a
+     * DataCite PUT is an upsert, so the dropped properties would be erased on the registered
+     * record. That is the same failure this class's own javadoc was written about.
+     */
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class Contributor {
+        private String name;
+        private String nameType;
+        private String contributorType;
+        private String givenName;
+        private String familyName;
+        private String lang;
+        private NameIdentifier [] nameIdentifiers;
+        private Affiliation [] affiliation;
+    }
+
+    /** An identifier for a person or organisation, e.g. an ORCID or a ROR. */
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class NameIdentifier {
+        private String nameIdentifier;
+        private String nameIdentifierScheme;
+        private String schemeUri;
+    }
+
+    /** The {@code identifiers} block of a retrieved DOI: aliases and other local identifiers. */
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Identifier {
+        private String identifier;
+        private String identifierType;
+    }
+
+    /**
+     * Shared by {@link Creator} and {@link Contributor}. Non-null so an affiliation carrying only a
+     * name serializes as it arrived, rather than gaining three null identifier properties.
+     *
+     * <p>Tidiness, not a correctness fix: {@code creators} and {@code contributors} are top-level
+     * properties, so an update replaces each array whole and a null inside an element clears
+     * nothing. The top-level "absent preserves, null clears" rule does not recurse.
+     */
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Affiliation {
         public static final String SCHEME = "ROR";
         public static final String SCHEME_URI = "https://ror.org";

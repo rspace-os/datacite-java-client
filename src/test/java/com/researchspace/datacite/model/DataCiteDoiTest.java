@@ -208,4 +208,105 @@ public class DataCiteDoiTest {
 
         assertEquals(2026, attributes.get("publicationYear").asInt());
     }
+
+    /**
+     * The reason {@code contributors} and {@code identifiers} may be typed at all. As
+     * {@code List<Object>} Jackson round-tripped every property it read; typing them keeps that
+     * true only for as long as every DataCite property is declared. A DataCite PUT is an upsert, so
+     * anything dropped here is erased on the registered record.
+     */
+    @Test
+    public void aFullContributorSurvivesTheRoundTrip() throws IOException {
+        String contributor = "{\"name\":\"Doe, Jane\",\"nameType\":\"Personal\","
+            + "\"contributorType\":\"HostingInstitution\",\"lang\":\"en\",\"givenName\":\"Jane\","
+            + "\"familyName\":\"Doe\",\"nameIdentifiers\":[{\"nameIdentifier\":\"0000-0001-2345-6789\","
+            + "\"nameIdentifierScheme\":\"ORCID\",\"schemeUri\":\"https://orcid.org\"}]}";
+        ObjectMapper mapper = new ObjectMapper();
+
+        DataCiteDoiAttributes.Contributor parsed =
+                mapper.readValue(contributor, DataCiteDoiAttributes.Contributor.class);
+        JsonNode reserialized = mapper.valueToTree(parsed);
+
+        assertEquals(mapper.readTree(contributor), reserialized,
+                "every contributor property DataCite sent must go back unchanged");
+    }
+
+    /**
+     * Creator is the path the RSpace consumer exercises on every register and update, so it is the
+     * one that actually has to hold. The ORCID fixture is the real shape: creators on live
+     * instrument DOIs carry nameIdentifiers, and creators is a top-level property replaced whole by
+     * a PUT, so anything not declared here is erased on the registered record.
+     */
+    @Test
+    public void aFullCreatorSurvivesTheRoundTrip() throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        String nameOnly = "{\"name\":\"ESRF\",\"nameType\":\"Organizational\","
+            + "\"affiliation\":[{\"name\":\"European Synchrotron Radiation Facility\"}]}";
+        String populated = "{\"name\":\"ESRF\",\"nameType\":\"Organizational\","
+            + "\"affiliation\":[{\"name\":\"European Synchrotron Radiation Facility\","
+            + "\"affiliationIdentifier\":\"https://ror.org/02550n020\","
+            + "\"affiliationIdentifierScheme\":\"ROR\",\"schemeUri\":\"https://ror.org\"}]}";
+        String withOrcid = "{\"name\":\"Doe, Jane\",\"nameType\":\"Personal\","
+            + "\"givenName\":\"Jane\",\"familyName\":\"Doe\",\"lang\":\"en\","
+            + "\"nameIdentifiers\":[{\"nameIdentifier\":\"https://orcid.org/0000-0001-8935-5681\","
+            + "\"nameIdentifierScheme\":\"ORCID\",\"schemeUri\":\"https://orcid.org\"}],"
+            + "\"affiliation\":[{\"name\":\"European Synchrotron Radiation Facility\"}]}";
+
+        for (String json : new String[] {nameOnly, populated, withOrcid}) {
+            JsonNode reserialized = mapper.valueToTree(
+                    mapper.readValue(json, DataCiteDoiAttributes.Creator.class));
+            assertEquals(mapper.readTree(json), reserialized,
+                    "every creator property DataCite sent must go back unchanged");
+        }
+    }
+
+    /** Same guarantee for the identifiers block, whose two properties are the whole schema. */
+    @Test
+    public void aFullIdentifierSurvivesTheRoundTrip() throws IOException {
+        String identifier = "{\"identifier\":\"ID21\",\"identifierType\":\"alias\"}";
+        ObjectMapper mapper = new ObjectMapper();
+
+        JsonNode reserialized = mapper.valueToTree(
+                mapper.readValue(identifier, DataCiteDoiAttributes.Identifier.class));
+
+        assertEquals(mapper.readTree(identifier), reserialized);
+    }
+
+    /**
+     * {@code identifiers} and {@code contributors} were widened from {@code List<Object>} to typed
+     * lists. Erasure keeps the accessors binary compatible, which is what lets a consumer built
+     * against an older jar keep running; the same guarantee the two accessor tests above pin.
+     */
+    @Test
+    public void identifiersAndContributorsAccessorsStayBinaryCompatible() throws Exception {
+        assertEquals(List.class,
+                DataCiteDoiAttributes.class.getMethod("getIdentifiers").getReturnType(),
+                "getIdentifiers must keep returning List");
+        assertNotNull(DataCiteDoiAttributes.class.getMethod("setIdentifiers", List.class),
+                "setIdentifiers(List) must still exist");
+        assertEquals(List.class,
+                DataCiteDoiAttributes.class.getMethod("getContributors").getReturnType(),
+                "getContributors must keep returning List");
+        assertNotNull(DataCiteDoiAttributes.class.getMethod("setContributors", List.class),
+                "setContributors(List) must still exist");
+    }
+
+    /**
+     * The non-null rule has to reach the nested affiliation too. DataCite omits the identifier
+     * properties entirely unless a request asks for affiliations, so serializing them back as
+     * explicit nulls would clear registered values on the next upsert - the same hazard the
+     * contributor round trip above exists to close.
+     */
+    @Test
+    public void aNameOnlyAffiliationSurvivesTheRoundTripWithoutGainingNulls() throws IOException {
+        String contributor = "{\"name\":\"ESRF\",\"contributorType\":\"HostingInstitution\","
+            + "\"affiliation\":[{\"name\":\"European Synchrotron Radiation Facility\"}]}";
+        ObjectMapper mapper = new ObjectMapper();
+
+        JsonNode reserialized = mapper.valueToTree(
+                mapper.readValue(contributor, DataCiteDoiAttributes.Contributor.class));
+
+        assertEquals(mapper.readTree(contributor), reserialized,
+                "an affiliation with only a name must not gain null identifier properties");
+    }
 }

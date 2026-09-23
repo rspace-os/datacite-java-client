@@ -42,6 +42,8 @@ public class DataCiteClientImpl implements DataCiteClient {
     private String repositoryPrefix;
 
     private RestTemplate restTemplate;
+    /** See {@link #SEARCH_READ_TIMEOUT}: searches alone may legitimately run for tens of seconds. */
+    private RestTemplate searchRestTemplate;
 
     /**
      * A DOI: the mandatory {@code 10.} prefix, a numeric registrant, then a non-empty suffix.
@@ -115,10 +117,33 @@ public class DataCiteClientImpl implements DataCiteClient {
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
     private static final Duration READ_TIMEOUT = Duration.ofSeconds(30);
 
+    /**
+     * {@link #searchDois} alone gets a longer ceiling, because it alone is legitimately slow
+     * (RSDEV-1522). A lookup searches on a leading wildcard so the user can match a substring, and
+     * Elasticsearch pays for that by scanning the term dictionary: measured 2026-09-22 against
+     * api.datacite.org, {@code zeiss} answers in 0.15s but {@code *zeiss*} takes 11-14s and
+     * {@code *electron*} 24s, against the 30s every call shared. That left a single-word lookup
+     * six seconds from a timeout the user would see as a failed search.
+     *
+     * <p>Raised only here, deliberately. Registering, publishing and retracting a DOI have no
+     * reason to take tens of seconds, and rspace-web holds a database connection for the whole of
+     * these calls (RSDEV-1506), so a longer ceiling on them would only widen the window in which a
+     * slow DataCite ties up the pool.
+     *
+     * <p>90s covers the worst shape measured, the per-word wildcard query {@code *a* AND *b*}: one
+     * word 24s, two 23s, three 31s, four 66s. rspace-web does not send that shape today, so this is
+     * headroom rather than a licence to be slow.
+     */
+    private static final Duration SEARCH_READ_TIMEOUT = Duration.ofSeconds(90);
+
     private static SimpleClientHttpRequestFactory timeoutBoundedRequestFactory() {
+        return timeoutBoundedRequestFactory(READ_TIMEOUT);
+    }
+
+    private static SimpleClientHttpRequestFactory timeoutBoundedRequestFactory(Duration readTimeout) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(CONNECT_TIMEOUT);
-        requestFactory.setReadTimeout(READ_TIMEOUT);
+        requestFactory.setReadTimeout(readTimeout);
         return requestFactory;
     }
 
@@ -135,6 +160,8 @@ public class DataCiteClientImpl implements DataCiteClient {
         // streams bodies of unknown length as chunked, which DataCite rejects.
         this.restTemplate = new RestTemplate(
             new BufferingClientHttpRequestFactory(timeoutBoundedRequestFactory()));
+        this.searchRestTemplate = new RestTemplate(
+            new BufferingClientHttpRequestFactory(timeoutBoundedRequestFactory(SEARCH_READ_TIMEOUT)));
         this.basicAuthenticationHeader = String.format("Basic %s", Base64.getEncoder().encodeToString((username + ":" + password).getBytes()));
         this.username = username;
         this.repositoryPrefix = repositoryPrefix;
@@ -181,7 +208,7 @@ public class DataCiteClientImpl implements DataCiteClient {
                 .queryParam("affiliation", "true")
                 .encode().buildAndExpand(values).toUri();
         try {
-            DataCiteDoiSearchResult body = restTemplate.exchange(uri, HttpMethod.GET,
+            DataCiteDoiSearchResult body = searchRestTemplate.exchange(uri, HttpMethod.GET,
                     new HttpEntity<>(getHttpHeaders()), DataCiteDoiSearchResult.class).getBody();
             // the result type defaults data and meta to empty so callers need no null check;
             // returning a null body straight out would defeat that at the first use site

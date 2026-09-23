@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>datacite-java-client</artifactId>
-    <version>RSDEV-1326-datacite-SNAPSHOT</version>
+    <version>RSDEV-1522-datacite-SNAPSHOT</version>
     <parent>
         <groupId>com.github.rspace-os</groupId>
         <artifactId>rspace-parent</artifactId>

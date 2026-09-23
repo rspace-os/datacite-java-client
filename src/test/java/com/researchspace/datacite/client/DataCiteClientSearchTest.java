@@ -1,5 +1,6 @@
 package com.researchspace.datacite.client;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
@@ -22,7 +23,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
-/** Search goes through the client's own RestTemplate, so a MockRestServiceServer can observe it. */
+/**
+ * Search goes through the client's own RestTemplate, so a MockRestServiceServer can observe it. It is
+ * a RestTemplate of its own, because a search gets a longer read timeout than every other call
+ * (RSDEV-1522).
+ */
 public class DataCiteClientSearchTest {
 
     private static final String SEARCH_URL =
@@ -58,7 +63,30 @@ public class DataCiteClientSearchTest {
         client = new DataCiteClientImpl(
             new URI("https://api.test.datacite.org"), USER, PASSWORD, "10.82316");
         server = MockRestServiceServer.bindTo(
-            (RestTemplate) ReflectionTestUtils.getField(client, "restTemplate")).build();
+            (RestTemplate) ReflectionTestUtils.getField(client, "searchRestTemplate")).build();
+    }
+
+    /**
+     * The point of the separate template: a lookup searches on a leading wildcard, which costs
+     * DataCite tens of seconds, while registering or publishing a DOI has no reason to be slow and
+     * holds a database connection in rspace-web while it runs (RSDEV-1506).
+     */
+    @Test
+    public void searchesGetALongerReadTimeoutThanEveryOtherCall() throws URISyntaxException {
+        // its own client: setUp() swaps the mock server's factory into the one under test, which
+        // would hide the timeouts this is about
+        DataCiteClientImpl unmocked = new DataCiteClientImpl(
+            new URI("https://api.test.datacite.org"), USER, PASSWORD, "10.82316");
+        assertTrue(
+            readTimeoutOf(unmocked, "searchRestTemplate") > readTimeoutOf(unmocked, "restTemplate"),
+            "a search must be allowed to run longer than a registration");
+    }
+
+    private int readTimeoutOf(DataCiteClientImpl target, String templateField) {
+        RestTemplate template = (RestTemplate) ReflectionTestUtils.getField(target, templateField);
+        Object buffering = template.getRequestFactory();
+        Object simple = ReflectionTestUtils.getField(buffering, "requestFactory");
+        return (int) ReflectionTestUtils.getField(simple, "readTimeout");
     }
 
     @Test

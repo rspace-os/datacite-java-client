@@ -1,6 +1,5 @@
 package com.researchspace.datacite.client;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
@@ -68,8 +67,8 @@ public class DataCiteClientSearchTest {
 
     /**
      * The point of the separate template: a lookup searches on a leading wildcard, which costs
-     * DataCite tens of seconds, while registering or publishing a DOI has no reason to be slow and
-     * holds a database connection in rspace-web while it runs (RSDEV-1506).
+     * DataCite tens of seconds, while registering or publishing a DOI has no reason to be slow, and
+     * every call holds a database connection in rspace-web while it runs (RSDEV-1506).
      */
     @Test
     public void searchesGetALongerReadTimeoutThanEveryOtherCall() throws URISyntaxException {
@@ -77,9 +76,9 @@ public class DataCiteClientSearchTest {
         // would hide the timeouts this is about
         DataCiteClientImpl unmocked = new DataCiteClientImpl(
             new URI("https://api.test.datacite.org"), USER, PASSWORD, "10.82316");
-        assertTrue(
-            readTimeoutOf(unmocked, "searchRestTemplate") > readTimeoutOf(unmocked, "restTemplate"),
-            "a search must be allowed to run longer than a registration");
+        assertEquals(90_000, readTimeoutOf(unmocked, "searchRestTemplate"));
+        assertEquals(30_000, readTimeoutOf(unmocked, "restTemplate"),
+            "only the search may run longer; a longer ceiling elsewhere only widens the pool window");
     }
 
     private int readTimeoutOf(DataCiteClientImpl target, String templateField) {

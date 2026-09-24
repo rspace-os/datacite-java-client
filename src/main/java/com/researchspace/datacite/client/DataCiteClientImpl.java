@@ -125,20 +125,18 @@ public class DataCiteClientImpl implements DataCiteClient {
      * {@code *electron*} 24s, against the 30s every call shared. That left a single-word lookup
      * six seconds from a timeout the user would see as a failed search.
      *
-     * <p>Raised only here, deliberately. Registering, publishing and retracting a DOI have no
-     * reason to take tens of seconds, and rspace-web holds a database connection for the whole of
-     * these calls (RSDEV-1506), so a longer ceiling on them would only widen the window in which a
-     * slow DataCite ties up the pool.
+     * <p>Raised only here, deliberately, and not for free: rspace-web calls this client from inside
+     * a transaction, so a search holds a database connection and a request thread
+     * for as long as DataCite takes, and a slow or stalled DataCite can now pin each one three times
+     * as long (RSDEV-1506). That is accepted for a search, where the alternative is a lookup that
+     * fails for no fault of the user. Registering, publishing and retracting a DOI have no reason to
+     * take tens of seconds, so they keep the shorter ceiling and the smaller window.
      *
      * <p>90s covers the worst shape measured, the per-word wildcard query {@code *a* AND *b*}: one
      * word 24s, two 23s, three 31s, four 66s. rspace-web does not send that shape today, so this is
      * headroom rather than a licence to be slow.
      */
     private static final Duration SEARCH_READ_TIMEOUT = Duration.ofSeconds(90);
-
-    private static SimpleClientHttpRequestFactory timeoutBoundedRequestFactory() {
-        return timeoutBoundedRequestFactory(READ_TIMEOUT);
-    }
 
     private static SimpleClientHttpRequestFactory timeoutBoundedRequestFactory(Duration readTimeout) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
@@ -159,7 +157,7 @@ public class DataCiteClientImpl implements DataCiteClient {
         // Buffer request bodies so JSON POSTs carry a Content-Length header. Spring 6.1+
         // streams bodies of unknown length as chunked, which DataCite rejects.
         this.restTemplate = new RestTemplate(
-            new BufferingClientHttpRequestFactory(timeoutBoundedRequestFactory()));
+            new BufferingClientHttpRequestFactory(timeoutBoundedRequestFactory(READ_TIMEOUT)));
         this.searchRestTemplate = new RestTemplate(
             new BufferingClientHttpRequestFactory(timeoutBoundedRequestFactory(SEARCH_READ_TIMEOUT)));
         this.basicAuthenticationHeader = String.format("Basic %s", Base64.getEncoder().encodeToString((username + ":" + password).getBytes()));

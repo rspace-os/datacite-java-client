@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.3.0]
+ - Adding `searchDois` facade 
+
 ## [1.2.0]
 - Adding json include `NON_NULL` for `DataCiteDoiAttributes`
 - Omit an unset number rather than assert it: `publicationYear`, `metadataVersion`, the

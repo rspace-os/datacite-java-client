@@ -1,10 +1,8 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [RSDEV-1518-datacite-SNAPSHOT] (to be released as 1.4.0)
- - Anonymous read-only client `DataCiteClientImpl(URI, contactEmail)`: no Authorization header,
-   `User-Agent: RSpace (mailto:<email>)` for DataCite's identified rate tier
- - `searchDois(query, resourceTypeId, state, pageSize, pageNumber, sort)` for paged, sorted searches
+## [1.4.0]
+ - Amending `searchDois` with anonymous user
 
 ## [1.3.0]
  - Adding `searchDois` facade 

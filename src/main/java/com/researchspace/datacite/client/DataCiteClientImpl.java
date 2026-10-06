@@ -36,7 +36,10 @@ public class DataCiteClientImpl implements DataCiteClient {
     private URI dataciteDoisApiURI;
 
     private String basicAuthenticationHeader;
-    
+
+    /** Set only by the anonymous constructor: DataCite's "identified" rate tier wants an email in User-Agent. */
+    private String userAgent;
+
     private String username;
     
     private String repositoryPrefix;
@@ -140,6 +143,26 @@ public class DataCiteClientImpl implements DataCiteClient {
         this.repositoryPrefix = repositoryPrefix;
     }
 
+    /**
+     * An anonymous, read-only client for the PUBLIC registry: it sends no Authorization header,
+     * so it can search and retrieve but not register, update, publish, retract or delete, and
+     * {@link #testConnectionToDataCite()} is not meaningful for it. When {@code contactEmail} is
+     * not blank every request carries {@code User-Agent: RSpace (mailto:<email>)}, which DataCite
+     * documents as the identified tier (1000 requests per 5 minutes per IP rather than 500).
+     *
+     * @param dataciteApiURI url to the datacite api, e.g. "https://api.datacite.org"
+     * @param contactEmail an email DataCite may contact about this client's traffic, or blank
+     */
+    public DataCiteClientImpl(URI dataciteApiURI, String contactEmail) {
+        Validate.notNull(dataciteApiURI);
+        this.dataciteDoisApiURI = dataciteApiURI;
+        this.restTemplate = new RestTemplate(
+            new BufferingClientHttpRequestFactory(timeoutBoundedRequestFactory()));
+        this.basicAuthenticationHeader = null;
+        this.userAgent = StringUtils.isBlank(contactEmail)
+            ? null : "RSpace (mailto:" + contactEmail.trim() + ")";
+    }
+
     @Override
     public DataCiteDoi retrieveDoi(String doiId) {
         URI uri = dataciteDoisApiURI.resolve("/dois/" + checkedDoiPath(doiId) + "/?affiliation=true");
@@ -150,6 +173,12 @@ public class DataCiteClientImpl implements DataCiteClient {
     @Override
     public DataCiteDoiSearchResult searchDois(
             String query, String resourceTypeId, String state, int pageSize) {
+        return searchDois(query, resourceTypeId, state, pageSize, 1, null);
+    }
+
+    @Override
+    public DataCiteDoiSearchResult searchDois(
+            String query, String resourceTypeId, String state, int pageSize, int pageNumber, String sort) {
         // Blank is not "no results" to DataCite, it is "no filter": a blank query would return the
         // whole registry and a blank type would widen past instruments. Both are caller bugs.
         Validate.isTrue(StringUtils.isNotBlank(query), "query must not be blank");
@@ -159,6 +188,7 @@ public class DataCiteClientImpl implements DataCiteClient {
         // caller's own mistake would come back as though the registry were unreachable. Zero is
         // NOT an error - DataCite serves it as a count-only query - so it is left to pass through.
         Validate.isTrue(pageSize >= 0, "pageSize must not be negative");
+        Validate.isTrue(pageNumber >= 1, "pageNumber must be 1 or more");
         /*
          * Caller values go in as URI template variables, never concatenated into the builder.
          * Spring's QUERY_PARAM encoding escapes '=' and '&', so concatenation cannot inject a
@@ -176,8 +206,17 @@ public class DataCiteClientImpl implements DataCiteClient {
             builder.queryParam("state", "{state}");
             values.put("state", state);
         }
+        builder.queryParam("page[size]", pageSize);
+        // page 1 is DataCite's default and a sort is optional: both are left out when they would
+        // change nothing, so the request stays byte-for-byte what the four-argument form sends
+        if (pageNumber > 1) {
+            builder.queryParam("page[number]", pageNumber);
+        }
+        if (StringUtils.isNotBlank(sort)) {
+            builder.queryParam("sort", "{sort}");
+            values.put("sort", sort.trim());
+        }
         URI uri = builder
-                .queryParam("page[size]", pageSize)
                 .queryParam("affiliation", "true")
                 .encode().buildAndExpand(values).toUri();
         try {
@@ -296,7 +335,12 @@ public class DataCiteClientImpl implements DataCiteClient {
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        headers.add("authorization", basicAuthenticationHeader);
+        if (basicAuthenticationHeader != null) {
+            headers.add("authorization", basicAuthenticationHeader);
+        }
+        if (userAgent != null) {
+            headers.add(HttpHeaders.USER_AGENT, userAgent);
+        }
         return headers;
     }
     

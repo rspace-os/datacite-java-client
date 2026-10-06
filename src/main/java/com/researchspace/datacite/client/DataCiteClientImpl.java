@@ -145,8 +145,8 @@ public class DataCiteClientImpl implements DataCiteClient {
 
     /**
      * An anonymous, read-only client for the PUBLIC registry: it sends no Authorization header,
-     * so it can search and retrieve but not register, update, publish, retract or delete, and
-     * {@link #testConnectionToDataCite()} is not meaningful for it. When {@code contactEmail} is
+     * so it can search and retrieve, and register, update, publish, retract, delete and
+     * {@link #testConnectionToDataCite()} throw {@link IllegalStateException} without a request. When {@code contactEmail} is
      * not blank every request carries {@code User-Agent: RSpace (mailto:<email>)}, which DataCite
      * documents as the identified tier (1000 requests per 5 minutes per IP rather than 500).
      *
@@ -156,9 +156,11 @@ public class DataCiteClientImpl implements DataCiteClient {
     public DataCiteClientImpl(URI dataciteApiURI, String contactEmail) {
         Validate.notNull(dataciteApiURI);
         this.dataciteDoisApiURI = dataciteApiURI;
+        // a line break would end the User-Agent header and start another
+        Validate.isTrue(!StringUtils.containsAny(contactEmail, '\r', '\n'),
+            "contactEmail must not contain a line break");
         this.restTemplate = new RestTemplate(
             new BufferingClientHttpRequestFactory(timeoutBoundedRequestFactory()));
-        this.basicAuthenticationHeader = null;
         this.userAgent = StringUtils.isBlank(contactEmail)
             ? null : "RSpace (mailto:" + contactEmail.trim() + ")";
     }
@@ -232,6 +234,7 @@ public class DataCiteClientImpl implements DataCiteClient {
 
     @Override
     public DataCiteDoi registerDoi(DataCiteDoi doiToCreate) {
+        requireCredentials();
         URI uri = dataciteDoisApiURI.resolve("/dois/?affiliation=true");
         DataCiteDoiRequestWrapper doiRequest = new DataCiteDoiRequestWrapper();
         doiToCreate.getAttributes().setPrefix(repositoryPrefix);
@@ -259,6 +262,7 @@ public class DataCiteClientImpl implements DataCiteClient {
 
     @Override
     public DataCiteDoi updateDoi(DataCiteDoi doiUpdate) {
+        requireCredentials();
         URI uri = dataciteDoisApiURI.resolve("/dois/" + checkedDoiPath(doiUpdate.getId()) + "/?affiliation=true");
         DataCiteDoiRequestWrapper doiRequest = new DataCiteDoiRequestWrapper();
         doiRequest.setData(doiUpdate);
@@ -268,6 +272,7 @@ public class DataCiteClientImpl implements DataCiteClient {
 
     @Override
     public boolean deleteDoi(String doiId) {
+        requireCredentials();
         URI uri = dataciteDoisApiURI.resolve("/dois/" + checkedDoiPath(doiId));
         RequestEntity creationRequest = new RequestEntity<>(null, getHttpHeaders(), HttpMethod.DELETE, uri);
         ResponseEntity<DataCiteDoiRequestWrapper> response = callDataCiteWithDoiRequest(creationRequest);
@@ -288,7 +293,8 @@ public class DataCiteClientImpl implements DataCiteClient {
 
     @Override
     public boolean testConnectionToDataCite() {
-        
+        requireCredentials();
+
         /* first let's try connecting to public DataCite API, to validate the URL */
         try {
             URI uri = dataciteDoisApiURI.resolve("/heartbeat");
@@ -330,6 +336,12 @@ public class DataCiteClientImpl implements DataCiteClient {
             }
         }
         return false;
+    }
+
+    private void requireCredentials() {
+        if (basicAuthenticationHeader == null) {
+            throw new IllegalStateException("The anonymous DataCite client is read-only");
+        }
     }
 
     private HttpHeaders getHttpHeaders() {

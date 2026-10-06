@@ -68,6 +68,7 @@ public class DataCiteClientSearchTest {
         server.expect(requestTo(SEARCH_URL))
             .andExpect(method(HttpMethod.GET))
             .andExpect(header("authorization", EXPECTED_AUTH))
+            .andExpect(headerDoesNotExist("User-Agent"))
             .andRespond(withSuccess(SEARCH_RESPONSE, MediaType.APPLICATION_JSON));
 
         DataCiteDoiSearchResult result = client.searchDois("Zeiss microscope", "instrument", "findable", 50);
@@ -274,5 +275,52 @@ public class DataCiteClientSearchTest {
         IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class,
             () -> client.searchDois("Zeiss", "instrument", "findable", 50, 0, "-updated"));
         assertEquals("pageNumber must be 1 or more", thrown.getMessage());
+    }
+
+    @Test
+    public void anAnonymousClientRefusesEveryWriteWithoutSendingIt() throws URISyntaxException {
+        DataCiteClientImpl anonymous = anonymousClient("support@example.org");
+        DataCiteDoi doi = new DataCiteDoi();
+        doi.setId("10.82316/abc");
+
+        assertThrows(IllegalStateException.class, () -> anonymous.registerDoi(doi));
+        assertThrows(IllegalStateException.class, () -> anonymous.updateDoi(doi));
+        assertThrows(IllegalStateException.class, () -> anonymous.publishDoi(doi));
+        assertThrows(IllegalStateException.class, () -> anonymous.retractDoi(doi));
+        assertThrows(IllegalStateException.class, () -> anonymous.deleteDoi("10.82316/abc"));
+        assertThrows(IllegalStateException.class, anonymous::testConnectionToDataCite);
+        server.verify();
+    }
+
+    @Test
+    public void anAnonymousClientRefusesALineBreakInTheContactEmail() {
+        URI uri = URI.create("https://api.datacite.org");
+        assertThrows(IllegalArgumentException.class,
+            () -> new DataCiteClientImpl(uri, "a@example.org\r\nX-Injected: 1"));
+    }
+
+    @Test
+    public void anAnonymousClientTrimsTheContactEmailAndTheSort() throws URISyntaxException {
+        DataCiteClientImpl anonymous = anonymousClient(" support@example.org ");
+        server.expect(requestTo("https://api.datacite.org/dois?query=microscope&resource-type-id=instrument"
+                + "&state=findable&page%5Bsize%5D=50&page%5Bnumber%5D=2&sort=-updated&affiliation=true"))
+            .andExpect(header("User-Agent", "RSpace (mailto:support@example.org)"))
+            .andRespond(withSuccess(EMPTY_RESPONSE, MediaType.APPLICATION_JSON));
+
+        anonymous.searchDois("microscope", "instrument", "findable", 50, 2, " -updated ");
+
+        server.verify();
+    }
+
+    @Test
+    public void aLaterPageWithoutASortSendsNoSort() {
+        server.expect(requestTo("https://api.test.datacite.org/dois?query=Zeiss%20microscope"
+                + "&resource-type-id=instrument&state=findable&page%5Bsize%5D=50&page%5Bnumber%5D=2"
+                + "&affiliation=true"))
+            .andRespond(withSuccess(EMPTY_RESPONSE, MediaType.APPLICATION_JSON));
+
+        client.searchDois("Zeiss microscope", "instrument", "findable", 50, 2, null);
+
+        server.verify();
     }
 }

@@ -39,8 +39,7 @@ public interface DataCiteClient {
      * {@code pageNumber} is DataCite's own 1-based {@code page[number]} and must be 1 or more;
      * {@code sort} is passed as DataCite's {@code sort} parameter when not blank (for example
      * {@code -updated}, newest update first) and omitted otherwise. Page 1 without a sort builds
-     * exactly the request the four-argument form builds. DataCite serves at most 10,000 results
-     * per query, so a page beyond that answers an empty {@code data} rather than an error.
+     * exactly the request the four-argument form builds.
      */
     DataCiteDoiSearchResult searchDois(
             String query, String resourceTypeId, String state, int pageSize, int pageNumber, String sort);

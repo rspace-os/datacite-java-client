@@ -1,6 +1,7 @@
 package com.researchspace.datacite.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.headerDoesNotExist;
@@ -278,7 +279,7 @@ public class DataCiteClientSearchTest {
     }
 
     @Test
-    public void anAnonymousClientRefusesEveryWriteWithoutSendingIt() throws URISyntaxException {
+    public void anAnonymousClientRefusesEveryWriteWithoutSendingOrChangingIt() throws URISyntaxException {
         DataCiteClientImpl anonymous = anonymousClient("support@example.org");
         DataCiteDoi doi = new DataCiteDoi();
         doi.setId("10.82316/abc");
@@ -286,7 +287,9 @@ public class DataCiteClientSearchTest {
         assertThrows(IllegalStateException.class, () -> anonymous.registerDoi(doi));
         assertThrows(IllegalStateException.class, () -> anonymous.updateDoi(doi));
         assertThrows(IllegalStateException.class, () -> anonymous.publishDoi(doi));
+        assertNull(doi.getAttributes().getEvent());
         assertThrows(IllegalStateException.class, () -> anonymous.retractDoi(doi));
+        assertNull(doi.getAttributes().getEvent());
         assertThrows(IllegalStateException.class, () -> anonymous.deleteDoi("10.82316/abc"));
         assertThrows(IllegalStateException.class, anonymous::testConnectionToDataCite);
         server.verify();

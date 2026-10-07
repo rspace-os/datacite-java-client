@@ -281,12 +281,14 @@ public class DataCiteClientImpl implements DataCiteClient {
     
     @Override
     public DataCiteDoi publishDoi(DataCiteDoi doiToPublish) {
+        requireCredentials();
         doiToPublish.getAttributes().setEvent("publish");
         return updateDoi(doiToPublish);
     }
 
     @Override
     public DataCiteDoi retractDoi(DataCiteDoi doiToRetract) {
+        requireCredentials();
         doiToRetract.getAttributes().setEvent("hide");
         return updateDoi(doiToRetract);
     }

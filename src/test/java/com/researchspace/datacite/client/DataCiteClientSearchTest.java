@@ -1,14 +1,17 @@
 package com.researchspace.datacite.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.headerDoesNotExist;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import com.researchspace.datacite.model.DataCiteConnectionException;
+import com.researchspace.datacite.model.DataCiteDoi;
 import com.researchspace.datacite.model.DataCiteDoiSearchResult;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -66,6 +69,7 @@ public class DataCiteClientSearchTest {
         server.expect(requestTo(SEARCH_URL))
             .andExpect(method(HttpMethod.GET))
             .andExpect(header("authorization", EXPECTED_AUTH))
+            .andExpect(headerDoesNotExist("User-Agent"))
             .andRespond(withSuccess(SEARCH_RESPONSE, MediaType.APPLICATION_JSON));
 
         DataCiteDoiSearchResult result = client.searchDois("Zeiss microscope", "instrument", "findable", 50);
@@ -188,6 +192,138 @@ public class DataCiteClientSearchTest {
 
         assertEquals(41, result.getMeta().getTotal());
         assertEquals(0, result.getData().size());
+        server.verify();
+    }
+
+    private DataCiteClientImpl anonymousClient(String email) throws URISyntaxException {
+        DataCiteClientImpl anonymous = new DataCiteClientImpl(new URI("https://api.datacite.org"), email);
+        server = MockRestServiceServer.bindTo(
+            (RestTemplate) ReflectionTestUtils.getField(anonymous, "restTemplate")).build();
+        return anonymous;
+    }
+
+    @Test
+    public void anAnonymousClientSendsNoAuthorizationAndIdentifiesItselfByEmail() throws URISyntaxException {
+        DataCiteClientImpl anonymous = anonymousClient("support@example.org");
+        server.expect(requestTo("https://api.datacite.org/dois?query=microscope&resource-type-id=instrument"
+                + "&state=findable&page%5Bsize%5D=50&affiliation=true"))
+            .andExpect(method(HttpMethod.GET))
+            .andExpect(headerDoesNotExist("authorization"))
+            .andExpect(header("User-Agent", "RSpace (mailto:support@example.org)"))
+            .andRespond(withSuccess(SEARCH_RESPONSE, MediaType.APPLICATION_JSON));
+
+        DataCiteDoiSearchResult result = anonymous.searchDois("microscope", "instrument", "findable", 50);
+
+        assertEquals(63, result.getMeta().getTotal());
+        server.verify();
+    }
+
+    @Test
+    public void anAnonymousClientWithoutAnEmailSendsNeitherHeader() throws URISyntaxException {
+        DataCiteClientImpl anonymous = anonymousClient(" ");
+        server.expect(requestTo("https://api.datacite.org/dois?query=microscope&resource-type-id=instrument"
+                + "&state=findable&page%5Bsize%5D=50&affiliation=true"))
+            .andExpect(headerDoesNotExist("authorization"))
+            .andExpect(headerDoesNotExist("User-Agent"))
+            .andRespond(withSuccess(EMPTY_RESPONSE, MediaType.APPLICATION_JSON));
+
+        anonymous.searchDois("microscope", "instrument", "findable", 50);
+
+        server.verify();
+    }
+
+    @Test
+    public void anAnonymousClientRetrievesADoiWithoutCredentials() throws URISyntaxException {
+        DataCiteClientImpl anonymous = anonymousClient("support@example.org");
+        server.expect(requestTo("https://api.datacite.org/dois/10.15151/esrf-instr-gco8/?affiliation=true"))
+            .andExpect(headerDoesNotExist("authorization"))
+            .andExpect(header("User-Agent", "RSpace (mailto:support@example.org)"))
+            .andRespond(withSuccess("{\"data\":{\"id\":\"10.15151/esrf-instr-gco8\",\"type\":\"dois\","
+                + "\"attributes\":{\"doi\":\"10.15151/esrf-instr-gco8\",\"state\":\"findable\"}}}",
+                MediaType.APPLICATION_JSON));
+
+        DataCiteDoi doi = anonymous.retrieveDoi("10.15151/esrf-instr-gco8");
+
+        assertEquals("findable", doi.getAttributes().getState());
+        server.verify();
+    }
+
+    @Test
+    public void aPagedSortedSearchAddsPageNumberAndSortBeforeAffiliation() {
+        server.expect(requestTo("https://api.test.datacite.org/dois?query=Zeiss%20microscope"
+                + "&resource-type-id=instrument&state=findable&page%5Bsize%5D=50&page%5Bnumber%5D=3"
+                + "&sort=-updated&affiliation=true"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withSuccess(EMPTY_RESPONSE, MediaType.APPLICATION_JSON));
+
+        client.searchDois("Zeiss microscope", "instrument", "findable", 50, 3, "-updated");
+
+        server.verify();
+    }
+
+    @Test
+    public void theFirstPageWithoutASortKeepsTheUnpagedUrl() {
+        server.expect(requestTo(SEARCH_URL))
+            .andRespond(withSuccess(EMPTY_RESPONSE, MediaType.APPLICATION_JSON));
+
+        client.searchDois("Zeiss microscope", "instrument", "findable", 50, 1, " ");
+
+        server.verify();
+    }
+
+    @Test
+    public void searchDoisRefusesAPageNumberBelowOne() {
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class,
+            () -> client.searchDois("Zeiss", "instrument", "findable", 50, 0, "-updated"));
+        assertEquals("pageNumber must be 1 or more", thrown.getMessage());
+    }
+
+    @Test
+    public void anAnonymousClientRefusesEveryWriteWithoutSendingOrChangingIt() throws URISyntaxException {
+        DataCiteClientImpl anonymous = anonymousClient("support@example.org");
+        DataCiteDoi doi = new DataCiteDoi();
+        doi.setId("10.82316/abc");
+
+        assertThrows(IllegalStateException.class, () -> anonymous.registerDoi(doi));
+        assertThrows(IllegalStateException.class, () -> anonymous.updateDoi(doi));
+        assertThrows(IllegalStateException.class, () -> anonymous.publishDoi(doi));
+        assertNull(doi.getAttributes().getEvent());
+        assertThrows(IllegalStateException.class, () -> anonymous.retractDoi(doi));
+        assertNull(doi.getAttributes().getEvent());
+        assertThrows(IllegalStateException.class, () -> anonymous.deleteDoi("10.82316/abc"));
+        assertThrows(IllegalStateException.class, anonymous::testConnectionToDataCite);
+        server.verify();
+    }
+
+    @Test
+    public void anAnonymousClientRefusesALineBreakInTheContactEmail() {
+        URI uri = URI.create("https://api.datacite.org");
+        assertThrows(IllegalArgumentException.class,
+            () -> new DataCiteClientImpl(uri, "a@example.org\r\nX-Injected: 1"));
+    }
+
+    @Test
+    public void anAnonymousClientTrimsTheContactEmailAndTheSort() throws URISyntaxException {
+        DataCiteClientImpl anonymous = anonymousClient(" support@example.org ");
+        server.expect(requestTo("https://api.datacite.org/dois?query=microscope&resource-type-id=instrument"
+                + "&state=findable&page%5Bsize%5D=50&page%5Bnumber%5D=2&sort=-updated&affiliation=true"))
+            .andExpect(header("User-Agent", "RSpace (mailto:support@example.org)"))
+            .andRespond(withSuccess(EMPTY_RESPONSE, MediaType.APPLICATION_JSON));
+
+        anonymous.searchDois("microscope", "instrument", "findable", 50, 2, " -updated ");
+
+        server.verify();
+    }
+
+    @Test
+    public void aLaterPageWithoutASortSendsNoSort() {
+        server.expect(requestTo("https://api.test.datacite.org/dois?query=Zeiss%20microscope"
+                + "&resource-type-id=instrument&state=findable&page%5Bsize%5D=50&page%5Bnumber%5D=2"
+                + "&affiliation=true"))
+            .andRespond(withSuccess(EMPTY_RESPONSE, MediaType.APPLICATION_JSON));
+
+        client.searchDois("Zeiss microscope", "instrument", "findable", 50, 2, null);
+
         server.verify();
     }
 }

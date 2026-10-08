@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## [1.4.0]
- - Amending `searchDois` with anonymous user
+ - Amending `searchDois` with anonymous user for public search
 
 ## [1.3.0]
  - Adding `searchDois` facade 

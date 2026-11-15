@@ -9,7 +9,7 @@
     <parent>
         <groupId>com.github.rspace-os</groupId>
         <artifactId>rspace-parent</artifactId>
-        <version>3.0.0</version>
+        <version>314e7a9f6f729d219c4157c73dffd8314233de82</version>
     </parent>
 
     <repositories>
@@ -80,7 +80,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.21</version>
+            <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
